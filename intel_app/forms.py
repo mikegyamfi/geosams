@@ -82,3 +82,9 @@ class AFARegistrationForm(forms.ModelForm):
     class Meta:
         model = models.AFARegistration
         fields = ('name', 'phone_number', 'gh_card_number', 'occupation', 'date_of_birth')
+
+
+class UploadFileForm(forms.Form):
+    file = forms.FileField(label='Select an Excel file', help_text='Allowed file formats: .xlsx')
+
+
