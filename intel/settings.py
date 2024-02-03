@@ -31,6 +31,7 @@ DEBUG = False
 ALLOWED_HOSTS = [
     'www.geosams.com',
     'geosams-92zun.ondigitalocean.app',
+    'geosams-4vrmk.ondigitalocean.app',
     '127.0.0.1'
 ]
 
