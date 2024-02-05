@@ -98,11 +98,11 @@ def pay_with_wallet(request):
                 #
                 # print(response.text)
 
-                response1 = requests.get(f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{request.user.phone}&from=THANK YOU&sms={sms_message}")
+                response1 = requests.get(f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{request.user.phone}&from=GEO_AT&sms={sms_message}")
                 print(response1.text)
 
                 response2 = requests.get(
-                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=THANK YOU&sms={receiver_message}")
+                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=GEO_AT&sms={receiver_message}")
                 print(response2.text)
                 return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
             else:
@@ -1029,13 +1029,12 @@ def hubtel_webhook(request):
                             sms_message = f"Hello @{user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nThank you for using Data4All GH.\n\nThe Data4All GH"
 
                             response1 = requests.get(
-                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{user.phone}&from=THANK YOU&sms={sms_message}")
+                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{user.phone}&from=GEO_AT&sms={sms_message}")
                             print(response1.text)
 
                             response2 = requests.get(
-                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=THANK YOU&sms={receiver_message}")
+                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=GEOA_AT&sms={receiver_message}")
                             print(response2.text)
-                            return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
                             return JsonResponse({'status': 'Transaction Completed Successfully'}, status=200)
                         else:
                             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(
