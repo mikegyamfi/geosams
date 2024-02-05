@@ -33,9 +33,11 @@ def pay_with_wallet(request):
         amount = request.POST.get("amount")
         reference = request.POST.get("reference")
         if user.wallet is None:
-            return JsonResponse({'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
+            return JsonResponse(
+                {'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
         elif user.wallet <= 0 or user.wallet < float(amount):
-            return JsonResponse({'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
+            return JsonResponse(
+                {'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
         print(phone_number)
         print(amount)
         print(reference)
@@ -51,8 +53,7 @@ def pay_with_wallet(request):
 
         print(bundle)
         send_bundle_response = helper.send_bundle(request.user, phone_number, bundle, reference)
-        data = send_bundle_response.json()
-        print(data)
+        print(send_bundle_response)
 
         sms_headers = {
             'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
@@ -60,8 +61,9 @@ def pay_with_wallet(request):
         }
 
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-        if send_bundle_response.status_code == 200:
-            if data["code"] == "0000":
+        if send_bundle_response != "bad response":
+            print("good response")
+            if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response["request_message"] == "Successful":
                 new_transaction = models.IShareBundleTransaction.objects.create(
                     user=request.user,
                     bundle_number=phone_number,
@@ -75,27 +77,33 @@ def pay_with_wallet(request):
                 receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
                 sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using Geosams.\n\nGeosams"
 
-                num_without_0 = phone_number[1:]
-                print(num_without_0)
-                receiver_body = {
-                    'recipient': f"233{num_without_0}",
-                    'sender_id': 'Geosams',
-                    'message': receiver_message
-                }
+                # num_without_0 = phone_number[1:]
+                # print(num_without_0)
+                # receiver_body = {
+                #     'recipient': f"233{num_without_0}",
+                #     'sender_id': 'Geosams',
+                #     'message': receiver_message
+                # }
+                #
+                # response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
+                # print(response.text)
+                #
+                # sms_body = {
+                #     'recipient': f"233{request.user.phone}",
+                #     'sender_id': 'Geosams',
+                #     'message': sms_message
+                # }
+                #
+                # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+                #
+                # print(response.text)
 
-                response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
-                print(response.text)
+                response1 = requests.get(f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{request.user.phone}&from=THANK YOU&sms={sms_message}")
+                print(response1.text)
 
-                sms_body = {
-                    'recipient': f"233{request.user.phone}",
-                    'sender_id': 'Geosams',
-                    'message': sms_message
-                }
-
-                response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-
-                print(response.text)
-
+                response2 = requests.get(
+                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=TGHANK YOU&sms={receiver_message}")
+                print(response2.text)
                 return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
             else:
                 new_transaction = models.IShareBundleTransaction.objects.create(
@@ -306,9 +314,11 @@ def mtn_pay_with_wallet(request):
         admin = models.AdminInfo.objects.filter().first().phone_number
 
         if user.wallet is None:
-            return JsonResponse({'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
+            return JsonResponse(
+                {'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
         elif user.wallet <= 0 or user.wallet < float(amount):
-            return JsonResponse({'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
+            return JsonResponse(
+                {'status': f'Your wallet balance is low. Contact the admin to recharge. Admin Contact Info: 0{admin}'})
         if user.status == "User":
             bundle = models.MTNBundlePrice.objects.get(price=float(amount)).bundle_volume
         elif user.status == "Agent":
@@ -492,7 +502,8 @@ def afa_registration(request):
 
             return redirect(checkoutUrl)
     form = forms.AFARegistrationForm()
-    context = {'form': form, 'ref': reference, 'price': price, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+    context = {'form': form, 'ref': reference, 'price': price, "email": user_email,
+               "wallet": 0 if user.wallet is None else user.wallet}
     return render(request, "layouts/services/afa.html", context=context)
 
 
@@ -597,7 +608,8 @@ def big_time(request):
 
 @login_required(login_url='login')
 def history(request):
-    user_transactions = models.IShareBundleTransaction.objects.filter(user=request.user).order_by('transaction_date').reverse()
+    user_transactions = models.IShareBundleTransaction.objects.filter(user=request.user).order_by(
+        'transaction_date').reverse()
     header = "AirtelTigo Transactions"
     net = "tigo"
     context = {'txns': user_transactions, "header": header, "net": net}
@@ -615,7 +627,8 @@ def mtn_history(request):
 
 @login_required(login_url='login')
 def big_time_history(request):
-    user_transactions = models.BigTimeTransaction.objects.filter(user=request.user).order_by('transaction_date').reverse()
+    user_transactions = models.BigTimeTransaction.objects.filter(user=request.user).order_by(
+        'transaction_date').reverse()
     header = "Big Time Transactions"
     net = "bt"
     context = {'txns': user_transactions, "header": header, "net": net}
@@ -640,7 +653,7 @@ def verify_transaction(request, reference):
             amount = data["data"]["amount"]
             api_reference = data["data"]["reference"]
             date = data["data"]["paid_at"]
-            real_amount = float(amount)/100
+            real_amount = float(amount) / 100
             print(status)
             print(real_amount)
             print(api_reference)
@@ -990,9 +1003,9 @@ def hubtel_webhook(request):
                     print(user)
                     print(reference)
                     send_bundle_response = helper.send_bundle(user, phone_number, bundle, reference)
-                    data = send_bundle_response.json()
-
-                    print(data)
+                    # data = send_bundle_response.json()
+                    #
+                    # print(data)
 
                     sms_headers = {
                         'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
@@ -1001,8 +1014,9 @@ def hubtel_webhook(request):
 
                     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
 
-                    if send_bundle_response.status_code == 200:
-                        if data["code"] == "0000":
+                    if send_bundle_response != "bad response":
+                        print("good response")
+                        if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response["request_message"] == "Successful":
                             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(
                                 reference=reference)
                             print("got here")
@@ -1014,17 +1028,14 @@ def hubtel_webhook(request):
                             receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {user.phone}.\nReference: {reference}\n"
                             sms_message = f"Hello @{user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nThank you for using Data4All GH.\n\nThe Data4All GH"
 
-                            sms_body = {
-                                'recipient': f"233{user.phone}",
-                                'sender_id': 'Geosams',
-                                'message': sms_message
-                            }
-                            try:
-                                response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-                                print(response.text)
-                            except:
-                                print("message not sent")
-                                pass
+                            response1 = requests.get(
+                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{user.phone}&from=THANK YOU&sms={sms_message}")
+                            print(response1.text)
+
+                            response2 = requests.get(
+                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=THANK YOU&sms={receiver_message}")
+                            print(response2.text)
+                            return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
                             return JsonResponse({'status': 'Transaction Completed Successfully'}, status=200)
                         else:
                             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(
@@ -1068,7 +1079,6 @@ def hubtel_webhook(request):
                         bundle = models.SuperAgentMTNBundlePrice.objects.get(price=float(offer)).bundle_volume
                     else:
                         bundle = models.MTNBundlePrice.objects.get(price=float(offer)).bundle_volume
-
 
                     print(phone_number)
                     new_mtn_transaction = models.MTNTransaction.objects.create(
@@ -1196,4 +1206,3 @@ def populate_custom_users_from_excel(request):
 def delete_custom_users(request):
     CustomUser.objects.all().delete()
     return HttpResponseRedirect('Done')
-
