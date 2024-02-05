@@ -102,7 +102,7 @@ def pay_with_wallet(request):
                 print(response1.text)
 
                 response2 = requests.get(
-                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=TGHANK YOU&sms={receiver_message}")
+                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=THANK YOU&sms={receiver_message}")
                 print(response2.text)
                 return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
             else:
