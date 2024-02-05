@@ -1033,7 +1033,7 @@ def hubtel_webhook(request):
                             print(response1.text)
 
                             response2 = requests.get(
-                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=GEOA_AT&sms={receiver_message}")
+                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to={phone_number}&from=GEO_AT&sms={receiver_message}")
                             print(response2.text)
                             return JsonResponse({'status': 'Transaction Completed Successfully'}, status=200)
                         else:
