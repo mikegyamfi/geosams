@@ -8,7 +8,7 @@
 #
 #
 # payload = {'type': 'pushData',
-#            'apikey': '8ecce2fb4ba200b6ba148a7994035987f22d411a',
+#            'apikey': 'fghhg',
 #            'ref': 'tiktakkkkklkkkk',
 #            'data': '50',
 #            'share': '0272266444'}
