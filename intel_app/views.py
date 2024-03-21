@@ -892,7 +892,7 @@ def request_successful(request, reference):
 
 def topup_list(request):
     if request.user.is_superuser:
-        topup_requests = models.TopUpRequestt.objects.all().order_by('date').reverse()
+        topup_requests = models.TopUpRequestt.objects.all().order_by('date').reverse()[:200]
         context = {
             'requests': topup_requests,
         }
