@@ -38,7 +38,7 @@ def top_up_ref_generator():
     now_time = datetime.now().strftime('%H%M')
     secret = secrets.token_hex(1)
 
-    return f"TOPUP-{now_time}{secret}".upper()
+    return f"TPS-{now_time}{secret}".upper()
 
 
 def send_bundle(user, receiver, bundle_amount, reference):
