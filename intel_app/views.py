@@ -797,84 +797,88 @@ def credit_user(request):
 
 @login_required(login_url='login')
 def topup_info(request):
+    if request.method == "POST":
+        admin = models.AdminInfo.objects.filter().first().phone_number
+        user = models.CustomUser.objects.get(id=request.user.id)
+        amount = request.POST.get("amount")
+
+        if float(amount) > 50:
+            messages.error(request, "Maximum amount is GHS 50")
+            return redirect('topup-info')
+        print(amount)
+        reference = helper.top_up_ref_generator()
+        details = {
+            'topup_amount': amount
+        }
+        new_payment = models.Payment.objects.create(
+            user=request.user,
+            reference=reference,
+            transaction_details=details,
+            transaction_date=datetime.now(),
+            channel="topup"
+        )
+        new_payment.save()
+
+        url = "https://payproxyapi.hubtel.com/items/initiate"
+        print("hello world")
+        print("Amount is " + amount)
+
+        try:
+            total_amount = float(amount) + (1 / 100) * float(amount)
+        except:
+            return redirect('topup-info')
+
+        payload = json.dumps({
+            "totalAmount": total_amount,
+            "description": "N/A",
+            "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+            "returnUrl": "https://www.geosams.com",
+            "cancellationUrl": "https://www.geosams.com",
+            "merchantAccountNumber": "2019751",
+            "clientReference": new_payment.reference
+        })
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+        data = response.json()
+
+        checkoutUrl = data['data']['checkoutUrl']
+
+        return redirect(checkoutUrl)
     # if request.method == "POST":
     #     admin = models.AdminInfo.objects.filter().first().phone_number
     #     user = models.CustomUser.objects.get(id=request.user.id)
     #     amount = request.POST.get("amount")
     #     print(amount)
     #     reference = helper.top_up_ref_generator()
-    #     details = {
-    #         'topup_amount': amount
-    #     }
-    #     new_payment = models.Payment.objects.create(
+    #     new_topup_request = models.TopUpRequestt.objects.create(
     #         user=request.user,
+    #         amount=amount,
     #         reference=reference,
-    #         transaction_details=details,
-    #         transaction_date=datetime.now(),
-    #         channel="topup"
     #     )
-    #     new_payment.save()
+    #     new_topup_request.save()
     #
-    #     url = "https://payproxyapi.hubtel.com/items/initiate"
-    #     print("hello world")
-    #     print("Amount is " + amount)
-    #
-    #     try:
-    #         total_amount = float(amount) + (1 / 100) * float(amount)
-    #     except:
-    #         return redirect('topup-info')
-    #
-    #     payload = json.dumps({
-    #         "totalAmount": total_amount,
-    #         "description": "Payment for Wallet Topup",
-    #         "callbackUrl": "https://www.geosams.com/hubtel_webhook",
-    #         "returnUrl": "https://www.geosams.com",
-    #         "cancellationUrl": "https://www.geosams.com",
-    #         "merchantAccountNumber": "2019751",
-    #         "clientReference": new_payment.reference
-    #     })
-    #     headers = {
-    #         'Content-Type': 'application/json',
-    #         'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+    #     sms_headers = {
+    #         'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
+    #         'Content-Type': 'application/json'
     #     }
     #
-    #     response = requests.request("POST", url, headers=headers, data=payload)
+    #     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+    #     sms_message = f"A top up request has been placed.\nGHS{amount} for {user}.\nReference: {reference}"
     #
-    #     data = response.json()
-    #
-    #     checkoutUrl = data['data']['checkoutUrl']
-    #
-    #     return redirect(checkoutUrl)
-    if request.method == "POST":
-        admin = models.AdminInfo.objects.filter().first().phone_number
-        user = models.CustomUser.objects.get(id=request.user.id)
-        amount = request.POST.get("amount")
-        print(amount)
-        reference = helper.top_up_ref_generator()
-        new_topup_request = models.TopUpRequestt.objects.create(
-            user=request.user,
-            amount=amount,
-            reference=reference,
-        )
-        new_topup_request.save()
-
-        sms_headers = {
-            'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
-            'Content-Type': 'application/json'
-        }
-
-        sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-        sms_message = f"A top up request has been placed.\nGHS{amount} for {user}.\nReference: {reference}"
-
-        sms_body = {
-            'recipient': f"233{admin}",
-            'sender_id': 'Geosams',
-            'message': sms_message
-        }
-        # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-        # print(response.text)
-        messages.success(request, f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
-        return redirect("request_successful", reference)
+    #     sms_body = {
+    #         'recipient': f"233{admin}",
+    #         'sender_id': 'Geosams',
+    #         'message': sms_message
+    #     }
+    #     # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+    #     # print(response.text)
+    #     messages.success(request, f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
+    #     return redirect("request_successful", reference)
     return render(request, "layouts/topup-info.html")
 
 
