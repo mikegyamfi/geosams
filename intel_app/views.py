@@ -839,7 +839,7 @@ def topup_info(request):
         })
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Basic NTlNMDY5ODpmNWRhNjU5Yzg1Mjk0ZTY1YTM2ZDYxZDc3ZWI2Y2U5NA=='
+            'Authorization': config("HUBTEL_TOKEN")
         }
 
         response = requests.request("POST", url, headers=headers, data=payload)
