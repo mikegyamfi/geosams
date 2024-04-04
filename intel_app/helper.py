@@ -117,16 +117,5 @@ def send_bundle(user, receiver, bundle_amount, reference):
         return "bad response"
 
 
-def verify_paystack_transaction(reference):
-    url = f"https://api.paystack.co/transaction/verify/{reference}"
 
-    headers = {
-        "Authorization": "Bearer sk_test_d8585b8c1c61a364640e9acbb3bc8046f5fb9acd"
-    }
-
-    response = requests.request("GET", url, headers=headers)
-
-    print(response.json())
-
-    return response
 
