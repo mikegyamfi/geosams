@@ -238,3 +238,13 @@ class TopUpRequestt(models.Model):
     status = models.BooleanField(default=False, blank=False, null=False)
     date = models.DateTimeField(auto_now_add=True)
     credited_at = models.DateTimeField(auto_now_add=True)
+
+
+class MTNAPIUsers(models.Model):
+    user_id = models.CharField(max_length=250, null=False, blank=False)
+    wallet_balance = models.FloatField(null=False, blank=False)
+
+
+class APIUsersHistory(models.Model):
+    mtn_transaction = models.ForeignKey(MTNTransaction, on_delete=models.CASCADE)
+    api_user = models.ForeignKey(MTNAPIUsers, on_delete=models.CASCADE)
