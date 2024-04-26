@@ -44,6 +44,8 @@ urlpatterns = [
     path('elevated/topup-list', views.topup_list, name="topup_list"),
     path('credit/<str:reference>', views.credit_user_from_list, name='credit'),
 
+    path('api/initiate_mtn_transaction', views.initiate_mtn_transaction, name='mtn_transaction'),
+
     path('login', authViews.login_page, name='login'),
     path('signup', authViews.sign_up, name='signup'),
     path('logout', authViews.logout_user, name="logout")

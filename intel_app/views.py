@@ -63,7 +63,8 @@ def pay_with_wallet(request):
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
         if send_bundle_response != "bad response":
             print("good response")
-            if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response["request_message"] == "Successful":
+            if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response[
+                "request_message"] == "Successful":
                 new_transaction = models.IShareBundleTransaction.objects.create(
                     user=request.user,
                     bundle_number=phone_number,
@@ -98,7 +99,8 @@ def pay_with_wallet(request):
                 #
                 # print(response.text)
 
-                response1 = requests.get(f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{request.user.phone}&from=GEO_AT&sms={sms_message}")
+                response1 = requests.get(
+                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{request.user.phone}&from=GEO_AT&sms={sms_message}")
                 print(response1.text)
 
                 response2 = requests.get(
@@ -877,7 +879,8 @@ def topup_info(request):
         }
         # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
         # print(response.text)
-        messages.success(request, f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
+        messages.success(request,
+                         f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
         return redirect("request_successful", reference)
     return render(request, "layouts/topup-info.html")
 
@@ -1018,7 +1021,8 @@ def hubtel_webhook(request):
 
                     if send_bundle_response != "bad response":
                         print("good response")
-                        if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response["request_message"] == "Successful":
+                        if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response[
+                            "request_message"] == "Successful":
                             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(
                                 reference=reference)
                             print("got here")
@@ -1207,3 +1211,59 @@ def populate_custom_users_from_excel(request):
 def delete_custom_users(request):
     CustomUser.objects.all().delete()
     return HttpResponseRedirect('Done')
+
+
+@csrf_exempt
+def initiate_mtn_transaction(request):
+    if request.method == "POST":
+        print(request.POST)
+        receiver = request.POST.get("receiver")
+        bundle_volume = request.POST.get("bundle_volume")
+        reference = request.POST.get("reference")
+
+        if not receiver or not bundle_volume or not reference:
+            return JsonResponse({'message': 'Missing Parameters'}, status=400)
+
+        print(receiver)
+        print(bundle_volume)
+
+        try:
+            api_key = request.headers.get("api-key")
+            print(api_key)
+        except:
+            return JsonResponse({'message': 'No Api Key Found'}, status=401)
+
+        try:
+            bundle_price = models.APIMTNBundlePrice.objects.get(bundle_volume=bundle_volume).price
+        except models.APIMTNBundlePrice.DoesNotExist:
+            return JsonResponse({'message': 'Bundle Volume not found'}, status=400)
+
+        try:
+            api_user = models.MTNAPIUsers.objects.get(key=api_key)
+            wallet_balance = api_user.wallet_balance
+            print(wallet_balance)
+
+            if wallet_balance < float(bundle_price):
+                return JsonResponse({'message': 'Insufficient balance'}, status=400)
+
+            api_user.wallet_balance -= float(bundle_price)
+            api_user.save()
+
+            new_mtn_transaction = models.MTNTransaction.objects.create(
+                user=api_user.user,
+                bundle_number=receiver,
+                offer=f"{bundle_volume}MB",
+                reference=reference,
+            )
+            new_mtn_transaction.save()
+
+            new_api_history = models.APIUsersHistory.objects.create(
+                mtn_transaction=new_mtn_transaction,
+                api_user=api_user
+            )
+
+            new_api_history.save()
+
+            return JsonResponse({'status': "Your transaction will be completed shortly"}, status=200)
+        except models.MTNAPIUsers.DoesNotExist:
+            return JsonResponse(data={"message": "Invalid API Key"}, status=401)

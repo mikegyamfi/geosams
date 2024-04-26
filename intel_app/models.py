@@ -240,9 +240,20 @@ class TopUpRequestt(models.Model):
     credited_at = models.DateTimeField(auto_now_add=True)
 
 
+class APIMTNBundlePrice(models.Model):
+    price = models.FloatField(null=False, blank=False)
+    bundle_volume = models.FloatField(null=False, blank=False)
+
+    def __str__(self):
+        if self.bundle_volume >= 1000:
+            return f"GHS{self.price} - {self.bundle_volume/1000}GB"
+        return f"GHS{self.price} - {self.bundle_volume}MB"
+
+
 class MTNAPIUsers(models.Model):
-    user_id = models.CharField(max_length=250, null=False, blank=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     wallet_balance = models.FloatField(null=False, blank=False)
+    key = models.CharField(max_length=150, null=False, blank=False)
 
 
 class APIUsersHistory(models.Model):
