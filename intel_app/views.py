@@ -1227,11 +1227,15 @@ def initiate_mtn_transaction(request):
         print(receiver)
         print(bundle_volume)
 
+        api_key = request.headers.get("api-key")
+        if not api_key:
+            return JsonResponse({'message': 'No Api Key Found'}, status=401)
+
         try:
-            api_key = request.headers.get("api-key")
+            api_user = models.MTNAPIUsers.objects.get(key=api_key)
             print(api_key)
         except:
-            return JsonResponse({'message': 'No Api Key Found'}, status=401)
+            return JsonResponse({'message': 'Invalid API Key'}, status=401)
 
         try:
             bundle_price = models.APIMTNBundlePrice.objects.get(bundle_volume=bundle_volume).price
