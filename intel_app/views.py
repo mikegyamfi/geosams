@@ -1261,6 +1261,8 @@ def initiate_mtn_transaction(request):
             )
             new_mtn_transaction.save()
 
+            print("saved")
+
             new_api_history = models.APIUsersHistory.objects.create(
                 mtn_transaction=new_mtn_transaction,
                 api_user=api_user
