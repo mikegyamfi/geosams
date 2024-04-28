@@ -1253,6 +1253,8 @@ def initiate_mtn_transaction(request):
             api_user.wallet_balance -= float(bundle_price)
             api_user.save()
 
+            print(api_user.user)
+
             new_mtn_transaction = models.MTNTransaction.objects.create(
                 user=api_user.user,
                 bundle_number=receiver,
