@@ -445,8 +445,15 @@ def mtn(request):
 
             return redirect(checkoutUrl)
     user = models.CustomUser.objects.get(id=request.user.id)
-    context = {'form': form, "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
-    return render(request, "layouts/services/mtn.html", context=context)
+    try:
+        api_user = models.MTNAPIUsers.objects.filter(user=user).first()
+        api_wallet = api_user.wallet_balance
+        context = {'form': form, "ref": reference, "email": user_email,
+                   "wallet": 0 if user.wallet is None else user.wallet, 'api_wallet': api_wallet}
+        return render(request, "layouts/services/mtn.html", context=context)
+    except:
+        context = {'form': form, "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+        return render(request, "layouts/services/mtn.html", context=context)
 
 
 @login_required(login_url='login')
@@ -1271,6 +1278,8 @@ def initiate_mtn_transaction(request):
             )
 
             new_api_history.save()
+
+            print("saved")
 
             return JsonResponse({'status': "Your transaction will be completed shortly"}, status=200)
         except models.MTNAPIUsers.DoesNotExist:
