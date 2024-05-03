@@ -2,9 +2,12 @@ from datetime import datetime
 
 import pandas as pd
 from decouple import config
+from django.contrib.auth.forms import PasswordResetForm
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect
 import requests
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 import json
 
@@ -452,7 +455,8 @@ def mtn(request):
                    "wallet": 0 if user.wallet is None else user.wallet, 'api_wallet': api_wallet}
         return render(request, "layouts/services/mtn.html", context=context)
     except:
-        context = {'form': form, "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+        context = {'form': form, "ref": reference, "email": user_email,
+                   "wallet": 0 if user.wallet is None else user.wallet}
         return render(request, "layouts/services/mtn.html", context=context)
 
 
@@ -1284,3 +1288,53 @@ def initiate_mtn_transaction(request):
             return JsonResponse({'status': "Your transaction will be completed shortly"}, status=200)
         except models.MTNAPIUsers.DoesNotExist:
             return JsonResponse(data={"message": "Invalid API Key"}, status=401)
+
+
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+
+
+def password_reset_request(request):
+    if request.method == "POST":
+        password_reset_form = PasswordResetForm(request.POST)
+        if password_reset_form.is_valid():
+            data = password_reset_form.cleaned_data['email']
+            user = models.CustomUser.objects.filter(email=data).first()
+            current_user = user
+            if user:
+                subject = "Password Reset Requested"
+                email_template_name = "password/password_reset_message.txt"
+                c = {
+                    "name": user.first_name,
+                    "email": user.email,
+                    'domain': 'www.geosams.com',
+                    'site_name': 'GeoSams',
+                    "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+                    "user": user,
+                    'token': default_token_generator.make_token(user),
+                    'protocol': 'https',
+                }
+                email = render_to_string(email_template_name, c)
+
+                # sms_headers = {
+                #     'Authorization': 'Bearer 1317|sCtbw8U97Nwg10hVbZLBPXiJ8AUby7dyozZMjJpU',
+                #     'Content-Type': 'application/json'
+                # }
+                #
+                # sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+                #
+                # sms_body = {
+                #     'recipient': f"233{user.phone}",
+                #     'sender_id': 'GH DATA',
+                #     'message': email
+                # }
+                # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+                # print(response.text)
+                response1 = requests.get(
+                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{user.phone}&from=GEO_AT&sms={email}")
+                print(response1.text)
+
+                return redirect("/password_reset/done/")
+    password_reset_form = PasswordResetForm()
+    return render(request=request, template_name="password/password_reset.html",
+                  context={"password_reset_form": password_reset_form})
