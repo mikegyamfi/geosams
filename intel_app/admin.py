@@ -86,3 +86,4 @@ admin.site.register(models.OrderItem)
 admin.site.register(models.Order)
 admin.site.register(models.Brand)
 admin.site.register(models.ProductImage),
+admin.site.register(models.WalletTransaction)
