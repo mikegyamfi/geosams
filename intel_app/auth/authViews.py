@@ -17,8 +17,9 @@ from django.contrib import messages
 
 from intel_app.models import CustomUser
 
+@login_required(login_url='login')
 def sign_up(request):
-    if request.user.is_authenticated and request.user.is_superuser:
+    if request.user.is_superuser:
         form = CustomUserForm()
         if request.method == 'POST':
             form = CustomUserForm(request.POST)
