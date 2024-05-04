@@ -31,7 +31,7 @@ def sign_up(request):
         return render(request, 'auth/signup.html', context=context)
     else:
         messages.warning(request, "Link is broken")
-        return redirect('home)
+        return redirect('home')
 
 
 def login_page(request):
