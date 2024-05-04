@@ -88,3 +88,33 @@ class UploadFileForm(forms.Form):
     file = forms.FileField(label='Select an Excel file', help_text='Allowed file formats: .xlsx')
 
 
+class OrderDetailsForm(forms.ModelForm):
+    full_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control full_name'}))
+    email = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control order_email'}))
+    phone = forms.IntegerField(
+        widget=forms.NumberInput(attrs={'class': 'form-control phone', 'placeholder': '0240000000'}))
+    address = forms.CharField(required=False, widget=forms.Textarea(
+        attrs={'class': 'form-control address', 'placeholder': 'Address', 'id': 'plain', 'cols': 20, 'rows': 4}))
+    city = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control city'}))
+    REGIONS_CHOICES = (
+        ('Ashanti Region', 'Ashanti Region'),
+        ('Brong-Ahafo Region', 'Brong-Ahafo Region'),
+        ('Central Region', 'Central Region'),
+        ('Eastern Region', 'Eastern Region'),
+        ('Greater Accra Region', 'Greater Accra Region'),
+        ('Northern Region', 'Northern Region'),
+        ('Oti Region', 'Oti Region'),
+        ('Upper East Region', 'Upper East Region'),
+        ('Upper West Region', 'Upper West Region'),
+        ('Volta Region', 'Volta Region'),
+        ('Western Region', 'Western Region'),
+        ('Western North Region', 'Western North Region'),
+    )
+
+    region = forms.CharField(widget=forms.Select(attrs={'class': 'form-control region'}, choices=REGIONS_CHOICES))
+    message = forms.CharField(required=False, widget=forms.Textarea(
+        attrs={'class': 'form-control message', 'placeholder': 'Message for Vendor', 'id': 'plain', 'cols': 20, 'rows': 4}))
+
+    class Meta:
+        model = models.Order
+        fields = ('full_name', 'email', 'phone', 'address', 'city', 'message', 'region')

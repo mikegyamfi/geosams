@@ -12,6 +12,12 @@
           <li class="nav-item">
             <a href="{% url 'services' %}" class="nav-link">Services</a>
           </li>
+          </li>
+          {% if request.user.is_superuser %}
+                    <li class="nav-item">
+            <a href="{% url 'shop' %}" class="nav-link">Shop</a>
+          </li>
+          {% endif %}
           <li class="nav-item">
             <a href="mailto:geosamscustomercare@gmail.com" class="nav-link">Contact</a>
           </li>

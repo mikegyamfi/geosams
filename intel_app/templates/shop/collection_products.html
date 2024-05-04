@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+  {% block content %}
+  {% include 'inc/header.html' %}
+
+  <header>
+    {% include 'inc/header.html' %}
+
+    <div class="container mt-5">
+      <div class="page-banner">
+        <div class="row justify-content-center align-items-center h-100">
+          <div class="col-md-6">
+            <nav aria-label="Breadcrumb">
+              <ul class="breadcrumb justify-content-center py-0 bg-transparent">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="breadcrumb-item active">BESTPLUG SHOP/{{collection_name}}</li>
+              </ul>
+            </nav>
+            <h1 class="text-center">{{category_name}}</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-section" id="services">
+      <div class="container">
+          <div class="text-center">
+              <h2 class="title-section">Products</h2>
+              <div class="divider mx-auto"></div>
+          </div>
+         <div class="row justify-content-left">
+           {% for product in products %}
+           <div class="col-6 col-lg-4 mb-2 col-lg-auto py-0 wow fadeInLeft">
+             <div class="card-pricing py-2 px-1">
+               <div class="header">
+                   {% with product_image=product.images.first %}
+                          <img style="width: 100px; height: 100px" src="{{ product_image.image.url }}" alt="{{ product.name }}">
+                  {% endwith %}
+               </div>
+               <div class="body py-3">
+                 <div style="font-size: 14px" class="price-tag">
+                   {{product.name}}
+                 </div>
+                 <div class="price-info">
+                   <p style="font-size: 13px">{{product.description|truncatechars:30}}</p>
+                   <a href="{% url 'product_details' category_name=category_name prod_name=product.name %}" class="btn btn-sm btn-outline-primary">Details</a>
+                 </div>
+               </div>
+             </div>
+           </div>
+           {% endfor %}
+     </div>
+      </div>
+  </div> <!-- .page-section -->
+  </main>
+
+  {% include 'inc/footer.html' %}
+
+
+{% endblock %}

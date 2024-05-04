@@ -45,6 +45,16 @@ class TopUpRequestAdmin(admin.ModelAdmin):
     list_display = ['user', 'reference', 'amount', 'date', 'status']
 
 
+class ProductImageInline(admin.TabularInline):  # or admin.StackedInline
+    model = models.ProductImage
+    extra = 4  # Set the number of empty forms to display
+
+
+class ProductAdmin(admin.ModelAdmin):
+    inlines = [ProductImageInline]
+    search_fields = ['name']
+
+
 admin.site.register(models.CustomUser, CustomUserAdmin)
 admin.site.register(models.IShareBundleTransaction, IShareBundleTransactionAdmin)
 admin.site.register(models.MTNTransaction, MTNTransactionAdmin)
@@ -67,3 +77,12 @@ admin.site.register(models.SuperAgentBigTimeBundlePrice)
 admin.site.register(models.APIMTNBundlePrice)
 admin.site.register(models.MTNAPIUsers)
 admin.site.register(models.APIUsersHistory)
+
+#########################################################################
+admin.site.register(models.Category)
+admin.site.register(models.Product, ProductAdmin)
+admin.site.register(models.Cart)
+admin.site.register(models.OrderItem)
+admin.site.register(models.Order)
+admin.site.register(models.Brand)
+admin.site.register(models.ProductImage),

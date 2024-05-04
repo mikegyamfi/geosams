@@ -17,6 +17,7 @@ from django.contrib.auth.decorators import login_required
 from . import helper, models
 from .forms import UploadFileForm
 from .models import CustomUser
+from django_ratelimit.decorators import ratelimit
 
 
 # Create your views here.
@@ -28,6 +29,8 @@ def services(request):
     return render(request, "layouts/services.html")
 
 
+@ratelimit(key='ip', rate='10/m')
+@login_required(login_url='login')
 def pay_with_wallet(request):
     if request.method == "POST":
         admin = models.AdminInfo.objects.filter().first().phone_number
@@ -77,7 +80,16 @@ def pay_with_wallet(request):
                 )
                 new_transaction.save()
                 user.wallet -= float(amount)
+                user.wallet = float(user.wallet)
                 user.save()
+                new_wallet_transaction = models.WalletTransaction.objects.create(
+                    user=request.user,
+                    transaction_type="Debit",
+                    transaction_amount=float(amount),
+                    transaction_use="AT",
+                    new_balance=user.wallet
+                )
+                new_wallet_transaction.save()
                 receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {reference}\n"
                 sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {reference}\nCurrent Wallet Balance: {user.wallet}\nThank you for using Geosams.\n\nGeosams"
 
@@ -123,6 +135,7 @@ def pay_with_wallet(request):
     return redirect('airtel-tigo')
 
 
+@ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def airtel_tigo(request):
     user = models.CustomUser.objects.get(id=request.user.id)
@@ -300,6 +313,8 @@ def airtel_tigo(request):
     return render(request, "layouts/services/at.html", context=context)
 
 
+@ratelimit(key='ip', rate='10/m')
+@login_required(login_url='login')
 def mtn_pay_with_wallet(request):
     if request.method == "POST":
         admin = models.AdminInfo.objects.filter().first().phone_number
@@ -342,7 +357,16 @@ def mtn_pay_with_wallet(request):
         )
         new_mtn_transaction.save()
         user.wallet -= float(amount)
+        user.wallet = float(user.wallet)
         user.save()
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=request.user,
+            transaction_type="Debit",
+            transaction_amount=float(amount),
+            transaction_use="MTN",
+            new_balance=user.wallet
+        )
+        new_wallet_transaction.save()
         sms_body = {
             'recipient': f"233{admin}",
             'sender_id': 'Geosams',
@@ -354,6 +378,7 @@ def mtn_pay_with_wallet(request):
     return redirect('mtn')
 
 
+@ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def big_time_pay_with_wallet(request):
     if request.method == "POST":
@@ -387,11 +412,21 @@ def big_time_pay_with_wallet(request):
         )
         new_mtn_transaction.save()
         user.wallet -= float(amount)
+        user.wallet = float(user.wallet)
         user.save()
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=request.user,
+            transaction_type="Debit",
+            transaction_amount=float(amount),
+            transaction_use="AT BigTime",
+            new_balance=user.wallet
+        )
+        new_wallet_transaction.save()
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
     return redirect('big_time')
 
 
+@ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def mtn(request):
     user = models.CustomUser.objects.get(id=request.user.id)
@@ -460,6 +495,7 @@ def mtn(request):
         return render(request, "layouts/services/mtn.html", context=context)
 
 
+@ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def afa_registration(request):
     user = models.CustomUser.objects.get(id=request.user.id)
@@ -520,6 +556,8 @@ def afa_registration(request):
     return render(request, "layouts/services/afa.html", context=context)
 
 
+@ratelimit(key='ip', rate='10/m')
+@login_required(login_url='login')
 def afa_registration_wallet(request):
     if request.method == "POST":
         user = models.CustomUser.objects.get(id=request.user.id)
@@ -550,7 +588,16 @@ def afa_registration_wallet(request):
         )
         new_registration.save()
         user.wallet -= float(price)
+        user.wallet = float(user.wallet)
         user.save()
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=request.user,
+            transaction_type="Debit",
+            transaction_amount=float(amount),
+            transaction_use="Afa",
+            new_balance=user.wallet
+        )
+        new_wallet_transaction.save()
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
     return redirect('home')
 
@@ -627,6 +674,16 @@ def history(request):
     net = "tigo"
     context = {'txns': user_transactions, "header": header, "net": net}
     return render(request, "layouts/history.html", context=context)
+
+
+@login_required(login_url='login')
+def wallet_history(request):
+    user_wallet_transactions = models.WalletTransaction.objects.filter(user=request.user).order_by(
+        'transaction_date').reverse()[:1000]
+    header = "Wallet Transactions"
+    net = "wallet"
+    context = {'txns': user_wallet_transactions, "header": header, "net": net}
+    return render(request, "layouts/wallet_history.html", context=context)
 
 
 @login_required(login_url='login')
@@ -782,6 +839,8 @@ def afa_mark_as_sent(request, pk):
         return redirect('afa_admin')
 
 
+@ratelimit(key='ip', rate='10/m')
+@login_required(login_url='login')
 def credit_user(request):
     form = forms.CreditUserForm()
     if request.user.is_superuser:
@@ -795,9 +854,25 @@ def credit_user(request):
                 user_needed = models.CustomUser.objects.get(username=user)
                 if user_needed.wallet is None:
                     user_needed.wallet = float(amount)
+                    user_needed.wallet = float(user.wallet)
+                    new_wallet_transaction = models.WalletTransaction.objects.create(
+                        user=user_needed,
+                        transaction_type="Credit",
+                        transaction_amount=float(amount),
+                        transaction_use="Top up"
+                    )
                 else:
                     user_needed.wallet += float(amount)
+                    user_needed.wallet = float(user.wallet)
+                    new_wallet_transaction = models.WalletTransaction.objects.create(
+                        user=request.user,
+                        transaction_type="Credit",
+                        transaction_amount=float(amount),
+                        transaction_use="Top up"
+                    )
                 user_needed.save()
+                new_wallet_transaction.new_balance = user_needed.wallet
+                new_wallet_transaction.save()
                 print(user_needed.username)
                 messages.success(request, "Crediting Successful")
                 return redirect('credit_user')
@@ -908,6 +983,7 @@ def request_successful(request, reference):
     return render(request, "layouts/services/request_successful.html", context=context)
 
 
+@login_required(login_url='login')
 def topup_list(request):
     if request.user.is_superuser:
         topup_requests = models.TopUpRequestt.objects.all().order_by('date').reverse()[:200]
@@ -920,6 +996,7 @@ def topup_list(request):
         return redirect('home')
 
 
+@ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def credit_user_from_list(request, reference):
     if request.user.is_superuser:
@@ -933,7 +1010,16 @@ def credit_user_from_list(request, reference):
         print(user.phone)
         print(amount)
         custom_user.wallet += amount
+        custom_user.wallet = float(user.wallet)
         custom_user.save()
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=custom_user,
+            transaction_type="Credit",
+            transaction_amount=float(amount),
+            transaction_use="Top up",
+            new_balance=custom_user.wallet
+        )
+        new_wallet_transaction.save()
         crediting.status = True
         crediting.credited_at = datetime.now()
         crediting.save()
@@ -1294,6 +1380,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 
 
+@ratelimit(key='ip', rate='3/m')
 def password_reset_request(request):
     if request.method == "POST":
         password_reset_form = PasswordResetForm(request.POST)

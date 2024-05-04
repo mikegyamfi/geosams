@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+  {% block content %}
+  {% include 'inc/header.html' %}
+
+  <header>
+    {% include 'inc/header.html' %}
+
+    <div class="container mt-5">
+      <div class="row mt-5">
+        <div class="col-md-12 mt-5 mb-5">
+          <div class="card shadow product-data mt-5">
+            <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <img src="{{main_image.image.url}}" class="w-100" alt="{{product.name}}">
+                  </div>
+                  <div class="col-md-8">
+                    {% if product.preorder_item %}
+                      <i class="text-danger">This item is a preorder item. End Date for preorder is: </i>
+                        <label class="badge bg-warning mb-3">{{product.preorder_end_date}}</label> <br>
+
+                      <i class="text-danger">Estimated Arrival Date after Preorder End Date:</i>
+                        <label class="badge bg-warning mb-3"> {{product.preorder_arrival_date}}
+                        </label>
+                    {% endif %}
+                    <h2 class="mb-0">
+                        {{product.name}}
+                        {% comment %} {% if product.trending %}
+                            <label style="font-size:16px;" class="float-end badge bg-danger trending-tag">Trending</label>
+                        {% endif %} {% endcomment %}
+                    </h2>
+                      {% if product.brand %}
+                      <p><strong>Brand:</strong> {{product.brand}}</p>
+                      {% endif %}
+                      <hr>
+                    <label class="me-3">Price: <span class="fw-bold">GHS {{product.selling_price|stringformat:'d'}}</span> <s>GHS {{product.original_price|stringformat:'d'}}</s></label>
+                    <div class="mb-0">
+                    <pre class="mb-0" style="font-family: 'Poppins', sans-serif">
+{{product.description}}
+                    </pre>
+                        </div>
+                      <hr class="m-0">
+                    {% if product.quantity > 0 %}
+                        <label class="badge bg-success">In Stock</label>
+                    {% else %}
+                        <label class="badge bg-danger">Out of Stock</label>
+                    {% endif %}
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            {% csrf_token %}
+                            <input type="hidden" value="{{product.id}}" class="prod_id">
+                            <label>Quantity</label>
+                            <div class="input-group text-center mb-3" style="width:130px">
+                                <button class="input-group-text dec-btnn bg-primary border-1 text-light"><i class="fa-solid fa-minus"></i></button>
+                                <input style="color:black;" type="text" name="quantity" class="form-control qty-val text-center" value="1">
+                                <button class="input-group-text inc-btnn bg-primary border-1 text-light"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <br>
+                                {% if product.quantity > 0 %}
+                                    <button type="button" class="btn btn-outline-primary me-3 float-start addToCartt">Add to cart <i class="fa-solid fa-cart-shopping"></i></button>
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
+                </div>
+                <hr>
+                <h5>Related Images</h5>
+                <div class="row">
+                    {% for image in images %}
+                    <div class="col-md-3 col-6">
+                        <a href="{{image.image.url}}" data-lightbox="product-images" data-title="{{product.name}}">
+                            <img style="width: 100px;" src="{{image.image.url}}" class="w-100" alt="{{product.name}}">
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+  </main>
+
+  {% include 'inc/footer.html' %}
+
+
+{% endblock %}

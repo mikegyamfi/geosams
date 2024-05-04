@@ -26,13 +26,35 @@ SECRET_KEY = config("SECRET_KEY")
 # SECRET_KEY = "DGFYUGEUGFEFE"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'www.geosams.com',
     'geosams-92zun.ondigitalocean.app',
     'geosams-4vrmk.ondigitalocean.app',
     '127.0.0.1'
+]
+
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+SESSION_COOKIE_SECURE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+X_FRAME_OPTIONS = 'DENY'
+
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8080',
+    'https://www.geosams.com',
+    'https://console.geosams.com',
 ]
 
 
@@ -58,7 +80,7 @@ JAZZMIN_SETTINGS = {
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
     "site_brand": "Geosams",
     "copyright": "Geosams",
-    # "login_logo": "img/site/bp.png",
+    "login_logo": "assets/img/gs-fig.png",
     "welcome_sign": "Welcome to the Geosams Admin",
     "custom_css": 'css/admin.css',
     "user_avatar": 'user',
@@ -74,6 +96,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'intel.urls'
 
@@ -105,7 +128,6 @@ WSGI_APPLICATION = 'intel.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
 
 DATABASES = {
     'default': {
@@ -163,4 +185,27 @@ STATICFILES_DIRS = [BASE_DIR / 'intel_app/static']
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 AUTH_USER_MODEL = 'intel_app.CustomUser'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+
+AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL")
+
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+AWS_DEFAULT_ACL = 'public-read'
+
+AWS_LOCATION = config("AWS_LOCATION")
+
+MEDIA_LOCATION = 'media'
+MEDIA_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
+DEFAULT_FILE_STORAGE = 'custom_storages.MediaStorage'
+
+# DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# MEDIA_URL = '/media/'
 

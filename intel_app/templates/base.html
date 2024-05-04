@@ -16,6 +16,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://cdn.datatables.net/v/dt/dt-1.13.4/datatables.min.css" rel="stylesheet"/>
 
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css">
+
   <link rel="stylesheet" href="{% static 'assets/vendor/animate/animate.css' %}">
 
   <link rel="stylesheet" href="{% static 'assets/css/bootstrap.css' %}">
@@ -83,11 +90,74 @@
       <script src="{% static 'assets/js/theme.js' %}"></script>
 
 
+      <!-- Initialize lightbox2 script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+
+      <script src="{% static 'assets/js/theme.js' %}"></script>
+
+
       <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script><!-- Include jQuery library -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include jQuery UI library -->
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+<!-- Your script follows after including jQuery and jQuery UI -->
+
+            <script>
+    let availableTags = [];
+
+    $.ajax({
+        method:'GET',
+        url:'/product-list',
+        success: function(response){
+            console.log(response.products)
+            startAutoComplete(response.products)
+        }
+    })
+
+        function startAutoComplete(availableTags) {
+            console.log("here")
+            $( "#searchproduct" ).autocomplete({
+                source: availableTags
+              });
+        }
+
+    </script>
+      <!-- Add these links to enable Bootstrap Carousel -->
+
 
        {% block scripts %}
-       
+
        {% endblock scripts %}
+
+      <!-- Add Glide.js script -->
+<script src="https://cdn.jsdelivr.net/npm/@glidejs/glide"></script>
+
+      <script>
+    lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true
+    });
+</script>
+
+<!-- Initialize Glide.js -->
+<script>
+    new Glide('#productCarousel', {
+        type: 'carousel',
+        startAt: 0,
+        perView: 1,
+        focusAt: 'center',
+        breakpoints: {
+            768: {
+                perView: 2
+            }
+            // Add more breakpoints if needed
+        }
+    }).mount();
+</script>
        
        
 

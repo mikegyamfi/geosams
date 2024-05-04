@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+  {% block content %}
+  {% include 'inc/header.html' %}
+
+  <header>
+    {% include 'inc/header.html' %}
+
+    <div class="container mx-auto mt-5 m-0">
+      <div class="row justify-content-center mt-5">
+        <div class="col-md-12 mt-5 mb-5">
+            <form class="justify-content-center" action="" method="post" id="checkout-form">
+                {% csrf_token %}
+            <div class="row">
+              <div class="col-md-7 mx-auto">
+                <div class="card shadow product-data mt-5">
+                  <div class="card-body">
+                      <div class="row checkout-form">
+              <div class="col-md-6">
+                <label for="">Full Name</label>
+                {{form.full_name}}
+              </div>
+              <div class="col-md-6 mt-2">
+                <label for="">Email</label>
+                {{form.email}}
+              </div>
+              <div class="col-md-6 mt-2">
+                <label for="">Phone</label>
+                {{form.phone}}
+              </div>
+              <div class="col-md-12 mt-2">
+                <label for="">Address</label>
+                {{form.address}}
+              </div>
+              <div class="col-md-6 mt-2">
+                <label for="">Region</label>
+                {{form.region}}
+              </div>
+                        <div class="col-md-6 mt-2">
+                <label for="">City</label>
+                {{form.city}}
+              </div>
+              <div class="col-md-12 mt-2">
+                <label for="">Message</label>
+                {{form.message}}
+              </div>
+            </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-5 mt-lg-5 mt-md-5 mt-sm-4 mt-4 mb-4 mx-auto">
+            <div class="card shadow">
+              <div class="card-body">
+            <h6>Order Summary</h6>
+            <hr />
+            {% if cart_items %}
+            <table class="table table-stripeds">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Qty</th>
+                  <th>Unit Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in cart_items %}
+                <tr>
+                  <td>
+                    {% with product_image=item.product.images.first %}
+                        <a href="{% url 'product_details' category_name=item.product.category.name prod_name=item.product.name %}">
+                            <img style="height: 30px; width: 30px" src="{{ product_image.image.url }}" alt="{{ item.product.name }}">
+                        </a>
+                    {% endwith %}
+
+                    {% if item.product.preorder_item %}
+                                <td>{{item.product.name}}<span class="text-danger">(P)</span></td>
+                                {% else %}
+                                <td>{{item.product.name}}</td>
+                                {%endif%}
+                  <td>{{item.product_qty}}</td>
+                  <td>Ghs {{item.product.selling_price|stringformat:'d'}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <h6 class="fw-bold">
+              Grand Total
+              <span class="float-end">
+                GHs {{total_price|stringformat:'d'}}
+              </span>
+            </h6>
+            <input type="hidden" name="payment_mode" value="COD" />
+            <input type="hidden" name="amount" class="tt" value="{{total_price}}" />
+            <input type="hidden" class="reference" name="ref" value="{{ref}}">
+                  <input type="hidden" class="email" name="email" value="{{email}}">
+<!--              <button class="btn btn-success col-md-12 mt-3" type="submit" onclick="payWithPaystack()">Pay Online</button>-->
+              <button class="btn btn-outline-primary col-md-12 mt-3" type="button" onclick="submitForm()">Pay with Wallet</button>
+              <p class="mt-2">Wallet Balance: GHS{{wallet}}</p>
+            {% else %}
+            <h4>Your Cart is empty</h4>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+          </div>
+            </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+  </main>
+
+  {% include 'inc/footer.html' %}
+
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+
+const paymentForm = document.getElementById('checkout-form');
+  let email = $(".email").val()
+  let ref = $(".reference").val()
+  console.log(email + ref)
+  paymentForm.addEventListener("submit", payWithPaystack, false);
+  function payWithPaystack(e) {
+    e.preventDefault();
+    let amount = $(".airtime-input").val()
+    let order_mail = $(".order_email").val()
+    let phonenumber = $(".phone").val()
+    let name = $(".full_name").val()
+    let address = $(".address").val()
+      let total_price = $(".tt").val()
+    let region = $(".region").val()
+    let city = $(".city").val()
+      let message = $(".mesage").val()
+    if (phonenumber.toString().length < 10 || phonenumber.toString().length != 10 || phonenumber.toString().length > 10){
+      Swal.fire({text: "Phone number must be 10 digits"})
+      return;
+    }
+
+    let handler = PaystackPop.setup({
+      key: 'pk_live_7055f8c8c4761f55114fb477035e68505b354572',
+      email: email,
+      amount: total_price * 100,
+      currency: "GHS",
+      ref: ref,
+      metadata: {
+        'receiver': phonenumber,
+        'phone_number': phonenumber,
+        'channel': 'commerce',
+        'real_amount': "{{total_price}}",
+        'db_id': "{{id}}",
+        'address': address,
+        'name': name,
+        'region': region,
+        'city': city,
+        'message': message,
+        'order_mail': order_mail
+      },
+      onClose: function(){
+        swal("Transaction Closed");
+        location.reload();
+      },
+      callback: function(response){
+        let reference = response.reference
+          Swal.fire({text: "Your order has been placed Successfully.", icon: "success", confirmButtonText: "Great"})
+        window.location.href = '/cart';
+        // let message = 'Payment complete! Reference: ' + response.reference;
+        // Swal.fire({text: "Processing your order"})
+        // Swal.showLoading();
+        // let token = $("input[name=csrfmiddlewaretoken]").val();
+        // $.ajax({
+        //   url: '/services/afa/',
+        //   method: "POST",
+        //   data: {
+        //     phone: phonenumber,
+        //     amount: '{{price}}',
+        //     reference: ref,
+        //     name: name,
+        //     card: card,
+        //     birth: birth,
+        //     occupation: occupation,
+        //     csrfmiddlewaretoken: token,
+        //   },
+        //   success: function(response){
+        //     Swal.fire({text: response.status, icon:response.icon, confirmButtonText:"Okay"}).then((value) => {
+        //       location.reload()
+        //     })
+        //   }
+        // })
+      }
+    });
+
+  handler.openIframe();
+}
+
+function submitForm() {
+  // Trigger form submission
+  paymentForm.submit();
+}
+</script>
+
+{% endblock scripts %}

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+  {% block content %}
+  {% include 'inc/header.html' %}
+
+  <header>
+    {% include 'inc/header.html' %}
+
+    <div class="container mx-auto mt-5 m-0">
+      <div class="row justify-content-center mt-5">
+        <div class="col-md-12 mt-5 mb-5">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        Order View
+                        <a class="btn btn-sm btn-warning float-end text-white" href="{% url 'orders' %}"> <i class="fa fa-reply"></i>  Back</a>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Shipping Details</h5>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="mt-2" for=""><strong>Full Name</strong></label>
+                                    <div>
+                                        {{order.full_name}}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="mt-2" for=""><strong>Phone</strong></label>
+                                    <div class="mb-2">
+                                        {{order.phone}}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label class="mt-2" for=""><strong>Email</strong></label>
+                            <div class="mb-2">
+                                {{order.email}}
+                            </div>
+                            <label class="mt-2" for=""><strong>Address</strong></label>
+                            <div class="mb-2">
+                                {{order.address}}
+                                {{order.city}}
+                                {{order.region}}
+                            </div>
+
+                            {% if request.user.is_superuser %}
+                            <hr>
+                            <p class="mt-2"><em><strong>Order placed by:</strong> {{order.user.first_name}} {{order.user.last_name}} - 0{{order.user.phone}}</em></p>
+                            <div>
+                                <a class="btn btn-sm btn-outline-warning" href="{% url 'change_order_stat' t_no=order.tracking_number stat='out' %}">Out for Delivery</a>
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'change_order_stat' t_no=order.tracking_number stat='Completed' %}">Completed</a>
+                                <a class="btn btn-sm btn-outline-success" href="{% url 'change_order_stat' t_no=order.tracking_number stat='Canceled' %}">Cancel and Refund</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 style="margin-bottom: 20px;">Order Details</h5>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order_items %}
+                                        <tr>
+                                            <td>
+                                                {% with product_image=item.product.images.first %}
+                                                    <a href="{% url 'product_details' category_name=item.product.category.name prod_name=item.product.name %}">
+                                                        <img style="height: 50px; width: 50px" src="{{ product_image.image.url }}" alt="{{ item.product.name }}">
+                                                    </a>
+                                                {% endwith %}
+                                            </td>
+                                            {% if item.product.preorder_item %}
+                                <td>{{item.product.name}}<span class="text-danger">(P)</span></td>
+                                {% else %}
+                                <td>{{item.product.name}}</td>
+                                {%endif%}
+                                            <td>{{item.quantity}}</td>
+                                            <td>GHS{{item.price|floatformat:2}}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <hr>
+                            <h5 class="mb-3">Total: GHS{{order.total_price|floatformat:2}}</h5>
+
+                            <p class="mb-3"><strong>Payment Mode</strong>: {{order.payment_mode}} {% if order.payment_mode == "COD" %}(Cash on Delivery){% endif %}</p>
+                            <p class="mb-3"><strong>Order Status</strong>: {{order.status}}</p>
+                            <p class="mb-3"><strong>Tracking Number</strong>: {{order.tracking_number}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+  </main>
+
+  {% include 'inc/footer.html' %}
+
+
+{% endblock %}

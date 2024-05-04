@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+  {% block content %}
+  {% include 'inc/header.html' %}
+
+  <header>
+    {% include 'inc/header.html' %}
+
+    <div class="container mt-5">
+      <div class="row mt-5">
+        <div class="col-md-12 mt-5 mb-5">
+          <div class="card shadow product-data mt-5">
+            <div class="card-body cart_data">
+                <div class="row">
+                    {% if admin == "Yes" %}
+                    <h5 class="mx-2 mt-2 mb-3">All Orders</h5>
+                    {% else %}
+                    <h5 class="mx-2 mt-2 mb-3">Your Orders</h5>
+                    {% endif %}
+                    <div class="table-responsive">
+                  <table class="table">
+                      <thead>
+                        <tr>
+                            <th>Order Date</th>
+                            <th>Tracking No</th>
+                            <th>Total Price</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for item in orders %}
+                            <tr>
+                                <td style="font-size: 14px">{{item.created_at}}</td>
+                                <td style="font-size: 14px">{{item.tracking_number}}</td>
+                                <td style="font-size: 14px">{{item.total_price}}</td>
+                                <td style="font-size: 14px">{{item.status}}</td>
+                                <td style="font-size: 14px"><a href="{% url 'view_order' t_no=item.tracking_number %}" class="btn btn-sm btn-outline-primary">Details</a></td>
+                            </tr>
+                        {% endfor %}
+                      </tbody>
+                  </table>
+                        </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+  </main>
+
+  {% include 'inc/footer.html' %}
+
+
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+  {% block content %}
+  {% include 'inc/header.html' %}
+
+  <header>
+    {% include 'inc/header.html' %}
+
+    <div class="container mt-5">
+      <div class="row mt-5">
+        <div class="col-md-12 mt-5 mb-5">
+          <div class="card shadow product-data mt-5">
+            <div class="card-body cart_data">
+                <div class="row">
+                    <h5 class="mx-2 mt-2 mb-3">Your Cart</h5>
+                    <div class="table-responsive">
+                  <table class="table">
+                      <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Product</th>
+                            <th>Unit Price</th>
+                            <th>Action</th>
+                            <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for item in cart %}
+                            <tr>
+                                <td>
+                                    {% with product_image=item.product.images.first %}
+                                        <a href="{% url 'product_details' category_name=item.product.category.name prod_name=item.product.name %}">
+                                            <img style="height: 50px; width: 50px" src="{{ product_image.image.url }}" alt="{{ item.product.name }}">
+                                        </a>
+                                    {% endwith %}
+                                </td>
+                                {% if item.product.preorder_item %}
+                                <td style="font-size: 14px">{{item.product.name}}<span class="text-danger">(Preorder)</span></td>
+                                {% else %}
+                                <td style="font-size: 14px">{{item.product.name}}</td>
+                                {%endif%}
+                                <td style="font-size: 14px">{{item.product.selling_price}}</td>
+                                <td>
+                                    <div class="my-auto">
+                                        <input type="hidden" class="prod_id" value={{item.product_id}}>
+                                        {% csrf_token %}
+                                        {% if item.product.quantity >= item.product_qty %}
+                                            <div class="input-group text-center mb-3" style="width:100px;">
+                                                <button style="width: 30px; height: 30px" class="input-group-text changeQty dec-btn d-flex justify-content-center align-items-center"><i class="fa-solid fa-minus"></i></button>
+                                                <input style="color: black; width: 30px; height: 30px" type="text" name="quantity" class="form-control qty-val text-center" value="{{item.product_qty}}">
+                                                <button style="width: 30px; height: 30px" class="input-group-text changeQtyy inc-btn d-flex justify-content-center align-items-center"><i class="fa-solid fa-plus"></i></button>
+                                            </div>
+                                        {% else %}
+                                        <h6>Out of Stock</h6>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger delete-cart-itemm" ><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                      </tbody>
+                  </table>
+                        </div>
+                </div>
+                {% if cart %}
+                <a class="btn btn-outline-success float-end" href="{% url 'checkout' %}">Checkout</a>
+                {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+  </main>
+
+  {% include 'inc/footer.html' %}
+
+
+{% endblock %}
