@@ -17,17 +17,20 @@ from django.contrib import messages
 
 from intel_app.models import CustomUser
 
-
 def sign_up(request):
-    form = CustomUserForm()
-    if request.method == 'POST':
-        form = CustomUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Sign Up Successful. Log in to continue.")
-            return redirect('login')
-    context = {'form': form}
-    return render(request, 'auth/signup.html', context=context)
+    if request.user.is_authenticated and request.user.is_superuser:
+        form = CustomUserForm()
+        if request.method == 'POST':
+            form = CustomUserForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Sign Up Successful. Log in to continue.")
+                return redirect('login')
+        context = {'form': form}
+        return render(request, 'auth/signup.html', context=context)
+    else:
+        messages.warning(request, "Link is broken")
+        return redirect('home)
 
 
 def login_page(request):
