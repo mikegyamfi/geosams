@@ -220,7 +220,6 @@ $(document).ready(function() {
         text: response.status,
         duration: 5000
         }).showToast();
-         $(".cart_data").load(location.href + " .cart_data");
       },
     });
   });
