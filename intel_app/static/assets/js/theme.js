@@ -206,6 +206,7 @@ $(document).ready(function() {
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
     var product_qty = $(this).closest(".product-data").find(".qty-val").val();
+    console.log(product_qty)
     var token = $("input[name=csrfmiddlewaretoken]").val();
     $.ajax({
       method: "POST",
