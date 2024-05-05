@@ -99,7 +99,6 @@ def viewcart(request):
     return render(request, 'shop/cart.html', context)
 
 @login_required(login_url='login')
-@login_required(login_url='login')
 def update_cart(request):
     if request.method == 'POST':
         prod_id = int(request.POST.get('product_id'))
@@ -111,6 +110,8 @@ def update_cart(request):
             cart = models.Cart.objects.get(product_id=prod_id, user=request.user)
             cart.product_qty = product_qty
             cart.save()
+            print("product quantity saved")
+            print(cart.product_qty)
             return JsonResponse({'status': 'Item quantity updated'})
     return redirect('shop')
 
