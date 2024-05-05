@@ -201,7 +201,7 @@ $(document).ready(function() {
     });
   });
 
-  $(".changeQtyy").off('click').on('click', function (e) {
+  $(".changeQtyy").click(function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
@@ -220,12 +220,12 @@ $(document).ready(function() {
         text: response.status,
         duration: 5000
         }).showToast();
-        $(".cart_data").load(location.href + " .cart_data");
+         $(".cart_data").load(location.href + " .cart_data");
       },
     });
   });
 
-    $(document).off('click').on("click", ".delete-cart-itemm", function (e) {
+    $(document).on("click", ".delete-cart-itemm", function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
