@@ -201,7 +201,7 @@ $(document).ready(function() {
     });
   });
 
-  $(".changeQtyy").click(function (e) {
+  $("body").off('click').on('click', 'changeQtyy', function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
