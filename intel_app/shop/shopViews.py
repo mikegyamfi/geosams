@@ -105,6 +105,7 @@ def update_cart(request):
         if models.Cart.objects.filter(user=request.user, product_id=prod_id):
             product = models.Product.objects.get(id=prod_id)
             product_qty = int(request.POST.get('product_qty'))
+            print(product_qty)
             if product.quantity < product_qty:
                 return JsonResponse({'status': f'Only {product.quantity} of this product is available'})
             cart = models.Cart.objects.get(product_id=prod_id, user=request.user)

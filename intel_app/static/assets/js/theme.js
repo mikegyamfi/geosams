@@ -151,32 +151,32 @@ $(document).ready(function() {
 $(document).ready(function() {
   console.log("ready")
    $(".inc-btnn").off('click').on('click', function (e) {
-     console.log("mmmmmmmmmmmmmm")
-    e.preventDefault();
+  e.preventDefault();
 
-    let inc_value = $(this.closest(".product-data")).find(".qty-val").val();
-    console.log(inc_value)
-    let value = parseInt(inc_value, 10);
-    value = isNaN(value) ? 0 : value;
+  let inc_value = $(this).closest(".card-body").find(".qty-val").val();
+  let value = parseInt(inc_value, 10);
+  value = isNaN(value) ? 0 : value;
 
-    if (value < 10) {
-      value++;
-      $(this.closest(".product-data")).find(".qty-val").val(value);
-    }
-  });
+  if (value < 10) {
+    value++;
+    $(this).closest(".card-body").find(".qty-val").val(value);
+  }
+});
+
 
   $(".dec-btnn").off('click').on('click', function (e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    let dec_value = $(this.closest(".product-data")).find(".qty-val").val();
-    let value = parseInt(dec_value, 10);
-    value = isNaN(value) ? 0 : value;
+  let dec_value = $(this).closest(".card-body").find(".qty-val").val();
+  let value = parseInt(dec_value, 10);
+  value = isNaN(value) ? 0 : value;
 
-    if (value > 1) {
-      value--;
-      $(this.closest(".product-data")).find(".qty-val").val(value);
-    }
-  });
+  if (value > 1) {
+    value--;
+    $(this).closest(".card-body").find(".qty-val").val(value);
+  }
+});
+
 
   $(".addToCartt").off('click').on('click', function (e) {
     e.preventDefault();
