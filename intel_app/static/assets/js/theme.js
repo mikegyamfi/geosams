@@ -150,7 +150,7 @@ $(document).ready(function() {
 
 $(document).ready(function() {
   console.log("ready")
-   $(".inc-btnn").click(function (e) {
+   $(".inc-btnn").off('click').on('click', function (e) {
      console.log("mmmmmmmmmmmmmm")
     e.preventDefault();
 
@@ -165,7 +165,7 @@ $(document).ready(function() {
     }
   });
 
-  $(".dec-btnn").click(function (e) {
+  $(".dec-btnn").off('click').on('click', function (e) {
     e.preventDefault();
 
     let dec_value = $(this.closest(".product-data")).find(".qty-val").val();
@@ -178,7 +178,7 @@ $(document).ready(function() {
     }
   });
 
-  $(".addToCartt").click(function (e) {
+  $(".addToCartt").off('click').on('click', function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
@@ -201,7 +201,7 @@ $(document).ready(function() {
     });
   });
 
-  $(".changeQtyy").click(function (e) {
+  $(".changeQtyy").off('click').on('click', function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
@@ -224,7 +224,7 @@ $(document).ready(function() {
     });
   });
 
-    $(document).on("click", ".delete-cart-itemm", function (e) {
+    $(document).off('click').on("click", ".delete-cart-itemm", function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
