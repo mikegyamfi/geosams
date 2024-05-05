@@ -1010,8 +1010,8 @@ def credit_user_from_list(request, reference):
         print(user.phone)
         print(amount)
         custom_user.wallet += amount
-        custom_user.wallet = float(user.wallet)
         custom_user.save()
+        print(custom_user.wallet)
         new_wallet_transaction = models.WalletTransaction.objects.create(
             user=custom_user,
             transaction_type="Credit",
