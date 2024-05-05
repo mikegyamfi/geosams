@@ -201,7 +201,7 @@ $(document).ready(function() {
     });
   });
 
-  $("body").off('click').on('click', 'changeQtyy', function (e) {
+  $(".changeQtyy").off('click').on('click', function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
@@ -225,7 +225,7 @@ $(document).ready(function() {
     });
   });
 
-    $(document).on("click", ".delete-cart-itemm", function (e) {
+    $("delete-cart-itemm").off('click').on("click", function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
