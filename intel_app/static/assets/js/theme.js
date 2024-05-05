@@ -224,7 +224,7 @@ $(document).ready(function() {
     });
   });
 
-    $("delete-cart-itemm").off('click').on("click", function (e) {
+    $(".delete-cart-itemm").off('click').on("click", function (e) {
     e.preventDefault();
 
     var product_id = $(this).closest(".product-data").find(".prod_id").val();
