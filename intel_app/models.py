@@ -268,6 +268,18 @@ class APIUsersHistory(models.Model):
     api_user = models.ForeignKey(MTNAPIUsers, on_delete=models.CASCADE)
 
 
+class ApiWalletTransaction(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    choices = (
+        ("Debit", "Debit"),
+        ("Credit", "Credit"),
+    )
+    transaction_type = models.CharField(max_length=250, null=True, blank=True, choices=choices)
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    transaction_amount = models.FloatField(null=False)
+    new_balance = models.FloatField(null=True)
+
+
 ####################################################################################
 
 def get_file_path(filename):

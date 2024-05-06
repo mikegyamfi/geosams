@@ -672,8 +672,14 @@ def history(request):
         'transaction_date').reverse()
     header = "AirtelTigo Transactions"
     net = "tigo"
-    context = {'txns': user_transactions, "header": header, "net": net}
-    return render(request, "layouts/history.html", context=context)
+    try:
+        user = models.CustomUser.objects.get(id=request.user.id)
+        api_user = models.MTNAPIUsers.objects.filter(user=user).first()
+        context = {'txns': user_transactions, "header": header, "net": net, "api_user": api_user}
+        return render(request, "layouts/history.html", context=context)
+    except:
+        context = {'txns': user_transactions, "header": header, "net": net}
+        return render(request, "layouts/history.html", context=context)
 
 
 @login_required(login_url='login')
@@ -684,6 +690,16 @@ def wallet_history(request):
     net = "wallet"
     context = {'txns': user_wallet_transactions, "header": header, "net": net}
     return render(request, "layouts/wallet_history.html", context=context)
+
+
+@login_required(login_url='login')
+def api_wallet_history(request):
+    user_wallet_transactions = models.ApiWalletTransaction.objects.filter(user=request.user).order_by(
+        'transaction_date').reverse()[:1000]
+    header = "API Wallet Transactions"
+    net = "api_wallet"
+    context = {'txns': user_wallet_transactions, "header": header, "net": net}
+    return render(request, "layouts/api_wallet_history.html", context=context)
 
 
 @login_required(login_url='login')
@@ -1351,6 +1367,14 @@ def initiate_mtn_transaction(request):
             api_user.save()
 
             print(api_user.user)
+
+            new_history = models.ApiWalletTransaction.objects.create(
+                user=api_user.user,
+                transaction_type="Debit",
+                transaction_amount=float(bundle_price),
+                new_balance=float(api_user.wallet_balance),
+            )
+            new_history.save()
 
             new_mtn_transaction = models.MTNTransaction.objects.create(
                 user=api_user.user,

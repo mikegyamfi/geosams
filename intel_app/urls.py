@@ -13,6 +13,7 @@ urlpatterns = [
                   path('services/mtn/', views.mtn, name='mtn'),
                   path('history/airtel-tigo', views.history, name='history'),
                   path('history/wallet', views.wallet_history, name='wallet_history'),
+                  path('history/api_wallet', views.api_wallet_history, name='api_wallet_history'),
                   path('services/big_time/', views.big_time, name='big_time'),
                   path('services/afa/', views.afa_registration, name='afa'),
                   path('history/mtn', views.mtn_history, name="mtn-history"),
