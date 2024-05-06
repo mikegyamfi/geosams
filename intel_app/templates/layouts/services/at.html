@@ -120,47 +120,62 @@
 //   handler.openIframe();
 // }
 
-  $("body").on('click', '.pay-with-wallet', function(e){
-    let firstBtn = $(".paystack-btn")
-    let secondBtn = $(".pay-with-wallet")
-    let process = $(".process")
-    firstBtn.css('display', 'none')
+ $("body").on('click', '.pay-with-wallet', function(e) {
+  let firstBtn = $(".paystack-btn");
+  let secondBtn = $(".pay-with-wallet");
+  let process = $(".process");
 
-    firstBtn.prop('disabled', true)
-    secondBtn.prop('disabled', true)
-    secondBtn.text("Processing...")
-    process.css('display', 'block')
+  // Disable buttons and show loading spinner
+  firstBtn.prop('disabled', true);
+  secondBtn.prop('disabled', true);
+  secondBtn.text("Processing...");
+  process.css('display', 'block');
 
-    console.log("yes")
-    e.preventDefault()
-    console.log(email)
-    console.log(ref)
-
+  e.preventDefault();
+  let email = $(".email").val();
+  let ref = $(".reference").val();
   let token = $("input[name=csrfmiddlewaretoken]").val();
-    let amount = $(".airtime-input").val()
-    let phonenumber = $(".phone").val()
-    if (phonenumber.toString().length < 10 || phonenumber.toString().length !== 10 || phonenumber.toString().length > 10){
-      Swal.fire({text: "Phone number must be 10 digits"})
-      return;
-    }
+  let amount = $(".airtime-input").val();
+  let phonenumber = $(".phone").val();
 
-    $.ajax({
-      method: "POST",
-      url: "/pay_with_wallet/",
-      data: {
-        phone: phonenumber,
-        amount: amount,
-        reference: ref,
-        csrfmiddlewaretoken: token,
-      },
-      success: function (response) {
-        console.log(response.status)
-        Swal.fire({text: response.status, confirmButtonText:"Okay"}).then((value) => {
-              location.reload()
-            })
-      },
-    });
-  })
+  if (phonenumber.toString().length !== 10) {
+    Swal.fire({ text: "Phone number must be 10 digits" });
+    // Re-enable buttons and hide loading spinner on error
+    firstBtn.prop('disabled', false);
+    secondBtn.prop('disabled', false);
+    secondBtn.text("Pay with Wallet");
+    process.css('display', 'none');
+    return;
+  }
+
+  // Perform AJAX request
+  $.ajax({
+    method: "POST",
+    url: "/pay_with_wallet/",
+    data: {
+      phone: phonenumber,
+      amount: amount,
+      reference: ref,
+      csrfmiddlewaretoken: token,
+    },
+    success: function(response) {
+      console.log(response.status);
+      Swal.fire({ text: response.status, confirmButtonText: "Okay" }).then((value) => {
+        location.reload();
+      });
+    },
+    error: function(xhr, status, error) {
+      // Handle AJAX errors, if any
+      console.log(xhr.responseText);
+      // Re-enable buttons and hide loading spinner on error
+      firstBtn.prop('disabled', false);
+      secondBtn.prop('disabled', false);
+      secondBtn.text("Pay with Wallet");
+      process.css('display', 'none');
+    }
+  });
+});
+
 
 </script>  
 

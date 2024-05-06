@@ -120,51 +120,68 @@
 //   handler.openIframe();
 // }
 
-$("body").on('click', '.pay-with-wallet', function(e){
-    let firstBtn = $(".paystack-btn")
-    let secondBtn = $(".pay-with-wallet")
-    let process = $(".process")
-    firstBtn.css('display', 'none')
+$("body").on('click', '.pay-with-wallet', function(e) {
+  let firstBtn = $(".paystack-btn");
+  let secondBtn = $(".pay-with-wallet");
+  let process = $(".process");
+  firstBtn.css('display', 'none');
 
-    firstBtn.prop('disabled', true)
-    secondBtn.prop('disabled', true)
-    secondBtn.text("Processing...")
-    process.css('display', 'block')
+  firstBtn.prop('disabled', true);
+  secondBtn.prop('disabled', true);
+  secondBtn.text("Processing...");
+  process.css('display', 'block');
 
-    console.log("yes")
-    e.preventDefault()
-    console.log(email)
-    console.log(ref)
+  e.preventDefault();
 
+  let email = $(".email").val();
+  let ref = $(".reference").val();
   let token = $("input[name=csrfmiddlewaretoken]").val();
-    let amount = $(".mtn-offer").val()
-    let phonenumber = $(".mtn-phone").val()
-    if (phonenumber.toString().length < 10 || phonenumber.toString().length !== 10 || phonenumber.toString().length > 10){
-      Swal.fire({text: "Phone number must be 10 digits"})
-      return;
-    }
+  let amount = $(".mtn-offer").val();
+  let phonenumber = $(".mtn-phone").val();
 
-    $.ajax({
-      method: "POST",
-      url: "/mtn_pay_with_wallet/",
-      data: {
-        phone: phonenumber,
-        amount: amount,
-        reference: ref,
-        csrfmiddlewaretoken: token,
-      },
-      success: function (response) {
-        console.log(response.status)
-        firstBtn.prop('disabled', false)
-        secondBtn.prop('disabled', false)
-        secondBtn.text("Pay with Wallet")
-        process.css('display', 'none')
-        Swal.fire({text: response.status, confirmButtonText:"Okay", allowOutsideClick: false, allowEscapeKey: false}).then((value) => {
-              location.reload()
-            })
-      },
-    });
-  })
+  if (phonenumber.toString().length !== 10) {
+    Swal.fire({ text: "Phone number must be 10 digits" });
+    firstBtn.prop('disabled', false);
+    secondBtn.prop('disabled', false);
+    secondBtn.text("Pay with Wallet");
+    process.css('display', 'none');
+    return;
+  }
+
+  $.ajax({
+    method: "POST",
+    url: "/mtn_pay_with_wallet/",
+    data: {
+      phone: phonenumber,
+      amount: amount,
+      reference: ref,
+      csrfmiddlewaretoken: token,
+    },
+    success: function(response) {
+      console.log(response.status);
+      firstBtn.prop('disabled', false);
+      secondBtn.prop('disabled', false);
+      secondBtn.text("Pay with Wallet");
+      process.css('display', 'none');
+      Swal.fire({
+        text: response.status,
+        confirmButtonText: "Okay",
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      }).then((value) => {
+        location.reload();
+      });
+    },
+    error: function(xhr, status, error) {
+      console.log(xhr.responseText);
+      firstBtn.prop('disabled', false);
+      secondBtn.prop('disabled', false);
+      secondBtn.text("Pay with Wallet");
+      process.css('display', 'none');
+    }
+  });
+});
+
 </script>  
 
 
