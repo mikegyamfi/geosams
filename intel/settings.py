@@ -22,11 +22,11 @@ TEMPLATE_DIR = BASE_DIR / 'intel_app/templates'
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = config("SECRET_KEY")
-SECRET_KEY = "DGFYUGEUGFEFE"
+SECRET_KEY = config("SECRET_KEY")
+# SECRET_KEY = "DGFYUGEUGFEFE"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'www.geosams.com',
@@ -35,27 +35,27 @@ ALLOWED_HOSTS = [
     '127.0.0.1'
 ]
 
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#
-# CSRF_COOKIE_SECURE = True
-# CSRF_COOKIE_HTTPONLY = True
-# SECURE_SSL_REDIRECT = True
-#
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# SECURE_BROWSER_XSS_FILTER = True
-#
-# SESSION_COOKIE_SECURE = True
-# SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-#
-# X_FRAME_OPTIONS = 'DENY'
-#
-#
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:8080',
-#     'https://www.geosams.com',
-#     'https://console.geosams.com',
-# ]
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+
+SESSION_COOKIE_SECURE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+X_FRAME_OPTIONS = 'DENY'
+
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8080',
+    'https://www.geosams.com',
+    'https://console.geosams.com',
+]
 
 
 # Application definition
@@ -122,26 +122,26 @@ WSGI_APPLICATION = 'intel.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'HOST': config("DATABASE_HOST"),
-#         'PORT': config("DATABASE_PORT"),
-#         'NAME': 'db',
-#         'USER': config("DATABASE_USERNAME"),
-#         'PASSWORD': config("DATABASE_PASSWORD"),
-#         'OPTIONS': {
-#             'sslmode': 'require'
-#         }
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': config("DATABASE_HOST"),
+        'PORT': config("DATABASE_PORT"),
+        'NAME': 'db',
+        'USER': config("DATABASE_USERNAME"),
+        'PASSWORD': config("DATABASE_PASSWORD"),
+        'OPTIONS': {
+            'sslmode': 'require'
+        }
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -186,25 +186,25 @@ STATICFILES_DIRS = [BASE_DIR / 'intel_app/static']
 AUTH_USER_MODEL = 'intel_app.CustomUser'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
-#
-# AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
-#
-# AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
-#
-# AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL")
-#
-# AWS_S3_OBJECT_PARAMETERS = {
-#     'CacheControl': 'max-age=86400',
-# }
-#
-# AWS_DEFAULT_ACL = 'public-read'
-#
-# AWS_LOCATION = config("AWS_LOCATION")
-#
-# MEDIA_LOCATION = 'media'
-# MEDIA_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
-# DEFAULT_FILE_STORAGE = 'custom_storages.MediaStorage'
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+
+AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL")
+
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+AWS_DEFAULT_ACL = 'public-read'
+
+AWS_LOCATION = config("AWS_LOCATION")
+
+MEDIA_LOCATION = 'media'
+MEDIA_URL = 'https://%s/%s/' % (AWS_S3_ENDPOINT_URL, AWS_LOCATION)
+DEFAULT_FILE_STORAGE = 'custom_storages.MediaStorage'
 
 # DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # MEDIA_URL = '/media/'
