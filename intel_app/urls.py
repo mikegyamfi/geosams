@@ -50,6 +50,7 @@ urlpatterns = [
                   path('signup', authViews.sign_up, name='signup'),
                   path('logout', authViews.logout_user, name="logout"),
                   path("password_reset/", views.password_reset_request, name="password_reset"),
+                  path('terms_and_conditions', views.t_and_c, name='t_and_c'),
 
                   ##################################################################################################################
                   path('shop/', shopViews.shop_home_collections, name='shop'),
@@ -71,7 +72,8 @@ urlpatterns = [
                        name='change_order_stat'),
 
                   path('product-list', shopViews.product_list_ajax),
-                  path('search-product', shopViews.search_product, name="search-product")
+                  path('search-product', shopViews.search_product, name="search-product"),
+
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

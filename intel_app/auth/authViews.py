@@ -11,15 +11,17 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+from intel_app import models
 from intel_app.forms import CustomUserForm
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
 from intel_app.models import CustomUser
 
-@login_required(login_url='login')
+
 def sign_up(request):
-    if request.user.is_superuser:
+    sign_up_active = models.AdminInfo.objects.filter().first().sign_up_active
+    if sign_up_active:
         form = CustomUserForm()
         if request.method == 'POST':
             form = CustomUserForm(request.POST)

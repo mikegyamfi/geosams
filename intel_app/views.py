@@ -29,6 +29,10 @@ def services(request):
     return render(request, "layouts/services.html")
 
 
+def t_and_c(request):
+    return render(request, "layouts/about.html")
+
+
 @ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def pay_with_wallet(request):
