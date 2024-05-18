@@ -10,13 +10,14 @@
       <div class="navbar-collapse collapse" id="navbarContent">
         <ul class="navbar-nav ml-lg-4 pt-3 pt-lg-0">
           </li>
-          {% if request.user.is_superuser %}
                     <li class="nav-item">
             <a href="{% url 'shop' %}" class="nav-link">Shop</a>
           </li>
-          {% endif %}
           <li class="nav-item">
-            <a href="mailto:geosamscustomercare@gmail.com" class="nav-link">Contact</a>
+            <a href="{% url 'cart' %}" class="nav-link">My Cart <i class="fa-solid fa-cart-shopping"></i></a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'orders' %}" class="nav-link">My Orders</a>
           </li>
           {% if request.user.is_authenticated %}
           <li class="nav-item">
@@ -57,6 +58,8 @@
           <button href="#" class="btn btn-outline rounded-pill dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{{request.user}}</button>
             <div class="dropdown-menu">
                 <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
+                <a href="{% url 'orders' %}" class="dropdown-item">My Orders</a>
+
               {% if request.user.data_bundle_access %}
                 <a class="dropdown-item" href="{% url 'history' %}">Dashboard</a>
               {% endif %}
@@ -64,6 +67,7 @@
                 <a class="dropdown-item" href="{% url 'mtn_admin' %}">MTN Admin</a>
               <a class="dropdown-item" href="{% url 'bt_admin' %}">Big Time Admin</a>
               <a class="dropdown-item" href="{% url 'afa_admin' %}">AFA Admin</a>
+              <a class="dropdown-item" href="{% url 'admin_orders' %}">Shop Orders</a>
               {% endif %}
             </div>
           </div>  
