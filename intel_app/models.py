@@ -286,6 +286,7 @@ class ApiWalletTransaction(models.Model):
     new_balance = models.FloatField(null=True)
 
 
+
 ####################################################################################
 
 def get_file_path(filename):

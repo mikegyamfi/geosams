@@ -22,10 +22,10 @@ class CustomUserAdmin(ExportActionMixin, UserAdmin):
 
     add_fieldsets = (
         (None, {
-            'classes': ('wide', ),
+            'classes': ('wide',),
             'fields': ('username', 'password1', 'password2', 'wallet')
         }),)
-    
+
 
 class IShareBundleTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
@@ -35,6 +35,17 @@ class IShareBundleTransactionAdmin(admin.ModelAdmin):
 class MTNTransactionAdmin(ExportActionMixin, admin.ModelAdmin):
     list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
     search_fields = ['reference', 'bundle_number']
+
+
+class WalletTransactionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'transaction_type', 'transaction_amount', 'transaction_use', 'new_balance',
+                    'transaction_date']
+    search_fields = ['user', 'transaction_type']
+
+
+class APIWalletTransactionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'transaction_type', 'transaction_amount', 'new_balance', 'transaction_date']
+    search_fields = ['user', 'transaction_type']
 
 
 class PaymentAdmin(admin.ModelAdmin):
@@ -73,7 +84,6 @@ admin.site.register(models.BigTimeBundlePrice)
 admin.site.register(models.AgentBigTimeBundlePrice)
 admin.site.register(models.SuperAgentBigTimeBundlePrice)
 
-
 admin.site.register(models.APIMTNBundlePrice)
 admin.site.register(models.MTNAPIUsers)
 admin.site.register(models.APIUsersHistory)
@@ -86,5 +96,5 @@ admin.site.register(models.OrderItem)
 admin.site.register(models.Order)
 admin.site.register(models.Brand)
 admin.site.register(models.ProductImage),
-admin.site.register(models.WalletTransaction)
-admin.site.register(models.ApiWalletTransaction)
+admin.site.register(models.WalletTransaction, WalletTransactionAdmin)
+admin.site.register(models.ApiWalletTransaction, APIWalletTransactionAdmin)
