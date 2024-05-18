@@ -26,7 +26,11 @@ def sign_up(request):
         if request.method == 'POST':
             form = CustomUserForm(request.POST)
             if form.is_valid():
+                username = form.cleaned_data['username']
                 form.save()
+                user_needed = models.CustomUser.objects.get(username=username)
+                user_needed.data_bundle_access = False
+                user_needed.save()
                 messages.success(request, "Sign Up Successful. Log in to continue.")
                 return redirect('login')
         context = {'form': form}
@@ -48,8 +52,11 @@ def login_page(request):
             user = authenticate(request, username=name, password=password)
             if user:
                 login(request, user)
-                messages.success(request, 'Log in Successful')
-                return redirect('home')
+                if user.data_bundle_access:
+                    messages.success(request, 'Log in Successful')
+                    return redirect('home')
+                else:
+                    return redirect("shop_home")
             else:
                 messages.error(request, 'Invalid username or password')
                 return redirect('login')
@@ -60,7 +67,7 @@ def login_page(request):
 def logout_user(request):
     logout(request)
     messages.success(request, "Log out successful")
-    return redirect('home')
+    return redirect('shop_home')
 
 
 # def password_reset_request(request):

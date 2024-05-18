@@ -6,7 +6,8 @@ from .auth import authViews
 from .shop import shopViews
 
 urlpatterns = [
-                  path('', views.home, name="home"),
+                  path('', shopViews.shop_home_collections, name="shop_home"),
+                  path('data_bundle', views.home, name="home"),
                   path('services', views.services, name='services'),
                   path('services/mtn', views.mtn, name='mtn'),
                   path('services/airtel-tigo/', views.airtel_tigo, name='airtel-tigo'),

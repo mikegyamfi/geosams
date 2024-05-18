@@ -25,8 +25,12 @@ def home(request):
     return render(request, "layouts/index.html")
 
 
+@login_required(login_url='login')
 def services(request):
-    return render(request, "layouts/services.html")
+    if request.user.data_bundle_access:
+        return render(request, "layouts/services.html")
+    else:
+        return redirect("shop_home")
 
 
 def t_and_c(request):
@@ -142,179 +146,182 @@ def pay_with_wallet(request):
 @ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def airtel_tigo(request):
-    user = models.CustomUser.objects.get(id=request.user.id)
-    status = user.status
-    form = forms.IShareBundleForm(status)
-    reference = helper.ref_generator()
-    user_email = request.user.email
-    if request.method == "POST":
-        form = forms.IShareBundleForm(data=request.POST, status=status)
-        if form.is_valid():
-            phone_number = form.cleaned_data["phone_number"]
-            amount = form.cleaned_data["offers"]
+    if request.user.data_bundle_access:
+        user = models.CustomUser.objects.get(id=request.user.id)
+        status = user.status
+        form = forms.IShareBundleForm(status)
+        reference = helper.ref_generator()
+        user_email = request.user.email
+        if request.method == "POST":
+            form = forms.IShareBundleForm(data=request.POST, status=status)
+            if form.is_valid():
+                phone_number = form.cleaned_data["phone_number"]
+                amount = form.cleaned_data["offers"]
 
-            print(amount.price)
+                print(amount.price)
 
-            details = {
-                'phone_number': phone_number,
-                'offers': amount.price
-            }
+                details = {
+                    'phone_number': phone_number,
+                    'offers': amount.price
+                }
 
-            new_payment = models.Payment.objects.create(
-                user=request.user,
-                reference=reference,
-                transaction_date=datetime.now(),
-                transaction_details=details,
-                channel="ishare",
-            )
-            new_payment.save()
-            print("payment saved")
-            print("form valid")
+                new_payment = models.Payment.objects.create(
+                    user=request.user,
+                    reference=reference,
+                    transaction_date=datetime.now(),
+                    transaction_details=details,
+                    channel="ishare",
+                )
+                new_payment.save()
+                print("payment saved")
+                print("form valid")
 
-            url = "https://payproxyapi.hubtel.com/items/initiate"
+                url = "https://payproxyapi.hubtel.com/items/initiate"
 
-            payload = json.dumps({
-                "totalAmount": float(amount.price) + (1 / 100) * float(amount.price),
-                "description": "Payment for AT Bundle",
-                "callbackUrl": "https://www.geosams.com/hubtel_webhook",
-                "returnUrl": "https://www.geosams.com",
-                "cancellationUrl": "https://www.geosams.com",
-                "merchantAccountNumber": "2019751",
-                "clientReference": new_payment.reference
-            })
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
-            }
+                payload = json.dumps({
+                    "totalAmount": float(amount.price) + (1 / 100) * float(amount.price),
+                    "description": "Payment for AT Bundle",
+                    "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+                    "returnUrl": "https://www.geosams.com",
+                    "cancellationUrl": "https://www.geosams.com",
+                    "merchantAccountNumber": "2019751",
+                    "clientReference": new_payment.reference
+                })
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+                }
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+                response = requests.request("POST", url, headers=headers, data=payload)
 
-            data = response.json()
+                data = response.json()
 
-            checkoutUrl = data['data']['checkoutUrl']
+                checkoutUrl = data['data']['checkoutUrl']
 
-            return redirect(checkoutUrl)
-    # if request.method == "POST":
-    #     form = forms.IShareBundleForm(data=request.POST, status=status)
-    #     payment_reference = request.POST.get("reference")
-    #     amount_paid = request.POST.get("amount")
-    #     new_payment = models.Payment.objects.create(
-    #         user=request.user,
-    #         reference=payment_reference,
-    #         amount=amount_paid,
-    #         transaction_date=datetime.now(),
-    #         transaction_status="Completed"
-    #     )
-    #     new_payment.save()
-    #     print("payment saved")
-    #     print("form valid")
-    #     phone_number = request.POST.get("phone")
-    #     offer = request.POST.get("amount")
-    #     print(offer)
-    #     if user.status == "User":
-    #         bundle = models.IshareBundlePrice.objects.get(price=float(offer)).bundle_volume
-    #     elif user.status == "Agent":
-    #         bundle = models.AgentIshareBundlePrice.objects.get(price=float(offer)).bundle_volume
-    #     elif user.status == "Super Agent":
-    #         bundle = models.SuperAgentIshareBundlePrice.objects.get(price=float(offer)).bundle_volume
-    #     else:
-    #         bundle = models.IshareBundlePrice.objects.get(price=float(offer)).bundle_volume
-    #
-    #     new_transaction = models.IShareBundleTransaction.objects.create(
-    #         user=request.user,
-    #         bundle_number=phone_number,
-    #         offer=f"{bundle}MB",
-    #         reference=payment_reference,
-    #         transaction_status="Pending"
-    #     )
-    #     print("created")
-    #     new_transaction.save()
-    #
-    #     print("===========================")
-    #     print(phone_number)
-    #     print(bundle)
-    #     send_bundle_response = helper.send_bundle(request.user, phone_number, bundle, payment_reference)
-    #     data = send_bundle_response.json()
-    #
-    #     print(data)
-    #
-    #     sms_headers = {
-    #         'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
-    #         'Content-Type': 'application/json'
-    #     }
-    #
-    #     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-    #
-    #     if send_bundle_response.status_code == 200:
-    #         if data["code"] == "0000":
-    #             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(reference=payment_reference)
-    #             print("got here")
-    #             print(transaction_to_be_updated.transaction_status)
-    #             transaction_to_be_updated.transaction_status = "Completed"
-    #             transaction_to_be_updated.save()
-    #             print(request.user.phone)
-    #             print("***********")
-    #             receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {payment_reference}\n"
-    #             sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {payment_reference}\nThank you for using Geosams GH.\n\nThe Geosams GH"
-    #
-    #             num_without_0 = phone_number[1:]
-    #             print(num_without_0)
-    #             receiver_body = {
-    #                 'recipient': f"233{num_without_0}",
-    #                 'sender_id': 'Geosams',
-    #                 'message': receiver_message
-    #             }
-    #
-    #             response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
-    #             print(response.text)
-    #
-    #             sms_body = {
-    #                 'recipient': f"233{request.user.phone}",
-    #                 'sender_id': 'Geosams',
-    #                 'message': sms_message
-    #             }
-    #
-    #             response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-    #
-    #             print(response.text)
-    #
-    #             return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
-    #         else:
-    #             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(reference=payment_reference)
-    #             transaction_to_be_updated.transaction_status = "Failed"
-    #             new_transaction.save()
-    #             sms_message = f"Hello @{request.user.username}. Something went wrong with your transaction. Contact us for enquiries.\nBundle: {bundle}MB\nPhone Number: {phone_number}.\nReference: {payment_reference}\nThank you for using Geosams GH.\n\nThe Geosams GH"
-    #
-    #             sms_body = {
-    #                 'recipient': f"233{request.user.phone}",
-    #                 'sender_id': 'Geosams',
-    #                 'message': sms_message
-    #             }
-    #             # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-    #             # print(response.text)
-    #             # r_sms_url = f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UmpEc1JzeFV4cERKTWxUWktqZEs&to={phone_number}&from=Geosams GH&sms={receiver_message}"
-    #             # response = requests.request("GET", url=r_sms_url)
-    #             # print(response.text)
-    #             return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
-    #     else:
-    #         transaction_to_be_updated = models.IShareBundleTransaction.objects.get(reference=payment_reference)
-    #         transaction_to_be_updated.transaction_status = "Failed"
-    #         new_transaction.save()
-    #         sms_message = f"Hello @{request.user.username}. Something went wrong with your transaction. Contact us for enquiries.\nBundle: {bundle}MB\nPhone Number: {phone_number}.\nReference: {payment_reference}\nThank you for using Geosams GH.\n\nThe Geosams GH"
-    #
-    #         sms_body = {
-    #             'recipient': f'233{request.user.phone}',
-    #             'sender_id': 'Geosams',
-    #             'message': sms_message
-    #         }
-    #
-    #         # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-    #         #
-    #         # print(response.text)
-    #         return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
-    user = models.CustomUser.objects.get(id=request.user.id)
-    context = {"form": form, "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
-    return render(request, "layouts/services/at.html", context=context)
+                return redirect(checkoutUrl)
+        # if request.method == "POST":
+        #     form = forms.IShareBundleForm(data=request.POST, status=status)
+        #     payment_reference = request.POST.get("reference")
+        #     amount_paid = request.POST.get("amount")
+        #     new_payment = models.Payment.objects.create(
+        #         user=request.user,
+        #         reference=payment_reference,
+        #         amount=amount_paid,
+        #         transaction_date=datetime.now(),
+        #         transaction_status="Completed"
+        #     )
+        #     new_payment.save()
+        #     print("payment saved")
+        #     print("form valid")
+        #     phone_number = request.POST.get("phone")
+        #     offer = request.POST.get("amount")
+        #     print(offer)
+        #     if user.status == "User":
+        #         bundle = models.IshareBundlePrice.objects.get(price=float(offer)).bundle_volume
+        #     elif user.status == "Agent":
+        #         bundle = models.AgentIshareBundlePrice.objects.get(price=float(offer)).bundle_volume
+        #     elif user.status == "Super Agent":
+        #         bundle = models.SuperAgentIshareBundlePrice.objects.get(price=float(offer)).bundle_volume
+        #     else:
+        #         bundle = models.IshareBundlePrice.objects.get(price=float(offer)).bundle_volume
+        #
+        #     new_transaction = models.IShareBundleTransaction.objects.create(
+        #         user=request.user,
+        #         bundle_number=phone_number,
+        #         offer=f"{bundle}MB",
+        #         reference=payment_reference,
+        #         transaction_status="Pending"
+        #     )
+        #     print("created")
+        #     new_transaction.save()
+        #
+        #     print("===========================")
+        #     print(phone_number)
+        #     print(bundle)
+        #     send_bundle_response = helper.send_bundle(request.user, phone_number, bundle, payment_reference)
+        #     data = send_bundle_response.json()
+        #
+        #     print(data)
+        #
+        #     sms_headers = {
+        #         'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
+        #         'Content-Type': 'application/json'
+        #     }
+        #
+        #     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+        #
+        #     if send_bundle_response.status_code == 200:
+        #         if data["code"] == "0000":
+        #             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(reference=payment_reference)
+        #             print("got here")
+        #             print(transaction_to_be_updated.transaction_status)
+        #             transaction_to_be_updated.transaction_status = "Completed"
+        #             transaction_to_be_updated.save()
+        #             print(request.user.phone)
+        #             print("***********")
+        #             receiver_message = f"Your bundle purchase has been completed successfully. {bundle}MB has been credited to you by {request.user.phone}.\nReference: {payment_reference}\n"
+        #             sms_message = f"Hello @{request.user.username}. Your bundle purchase has been completed successfully. {bundle}MB has been credited to {phone_number}.\nReference: {payment_reference}\nThank you for using Geosams GH.\n\nThe Geosams GH"
+        #
+        #             num_without_0 = phone_number[1:]
+        #             print(num_without_0)
+        #             receiver_body = {
+        #                 'recipient': f"233{num_without_0}",
+        #                 'sender_id': 'Geosams',
+        #                 'message': receiver_message
+        #             }
+        #
+        #             response = requests.request('POST', url=sms_url, params=receiver_body, headers=sms_headers)
+        #             print(response.text)
+        #
+        #             sms_body = {
+        #                 'recipient': f"233{request.user.phone}",
+        #                 'sender_id': 'Geosams',
+        #                 'message': sms_message
+        #             }
+        #
+        #             response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+        #
+        #             print(response.text)
+        #
+        #             return JsonResponse({'status': 'Transaction Completed Successfully', 'icon': 'success'})
+        #         else:
+        #             transaction_to_be_updated = models.IShareBundleTransaction.objects.get(reference=payment_reference)
+        #             transaction_to_be_updated.transaction_status = "Failed"
+        #             new_transaction.save()
+        #             sms_message = f"Hello @{request.user.username}. Something went wrong with your transaction. Contact us for enquiries.\nBundle: {bundle}MB\nPhone Number: {phone_number}.\nReference: {payment_reference}\nThank you for using Geosams GH.\n\nThe Geosams GH"
+        #
+        #             sms_body = {
+        #                 'recipient': f"233{request.user.phone}",
+        #                 'sender_id': 'Geosams',
+        #                 'message': sms_message
+        #             }
+        #             # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+        #             # print(response.text)
+        #             # r_sms_url = f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UmpEc1JzeFV4cERKTWxUWktqZEs&to={phone_number}&from=Geosams GH&sms={receiver_message}"
+        #             # response = requests.request("GET", url=r_sms_url)
+        #             # print(response.text)
+        #             return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
+        #     else:
+        #         transaction_to_be_updated = models.IShareBundleTransaction.objects.get(reference=payment_reference)
+        #         transaction_to_be_updated.transaction_status = "Failed"
+        #         new_transaction.save()
+        #         sms_message = f"Hello @{request.user.username}. Something went wrong with your transaction. Contact us for enquiries.\nBundle: {bundle}MB\nPhone Number: {phone_number}.\nReference: {payment_reference}\nThank you for using Geosams GH.\n\nThe Geosams GH"
+        #
+        #         sms_body = {
+        #             'recipient': f'233{request.user.phone}',
+        #             'sender_id': 'Geosams',
+        #             'message': sms_message
+        #         }
+        #
+        #         # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+        #         #
+        #         # print(response.text)
+        #         return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
+        user = models.CustomUser.objects.get(id=request.user.id)
+        context = {"form": form, "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+        return render(request, "layouts/services/at.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @ratelimit(key='ip', rate='10/m')
@@ -433,131 +440,137 @@ def big_time_pay_with_wallet(request):
 @ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def mtn(request):
-    user = models.CustomUser.objects.get(id=request.user.id)
-    status = user.status
-    form = forms.MTNForm(status=status)
-    reference = helper.ref_generator()
-    user_email = request.user.email
-    admin = models.AdminInfo.objects.filter().first().phone_number
-    if request.method == "POST":
-        form = forms.MTNForm(data=request.POST, status=status)
-        if form.is_valid():
-            phone_number = form.cleaned_data['phone_number']
-            amount = form.cleaned_data['offers']
+    if request.user.data_bundle_access:
+        user = models.CustomUser.objects.get(id=request.user.id)
+        status = user.status
+        form = forms.MTNForm(status=status)
+        reference = helper.ref_generator()
+        user_email = request.user.email
+        admin = models.AdminInfo.objects.filter().first().phone_number
+        if request.method == "POST":
+            form = forms.MTNForm(data=request.POST, status=status)
+            if form.is_valid():
+                phone_number = form.cleaned_data['phone_number']
+                amount = form.cleaned_data['offers']
 
-            print(amount.price)
+                print(amount.price)
 
-            details = {
-                'phone_number': phone_number,
-                'offers': amount.price
-            }
+                details = {
+                    'phone_number': phone_number,
+                    'offers': amount.price
+                }
 
-            new_payment = models.Payment.objects.create(
-                user=request.user,
-                reference=reference,
-                transaction_date=datetime.now(),
-                transaction_details=details,
-                channel="mtn",
-            )
-            new_payment.save()
-            print("payment saved")
-            print("form valid")
+                new_payment = models.Payment.objects.create(
+                    user=request.user,
+                    reference=reference,
+                    transaction_date=datetime.now(),
+                    transaction_details=details,
+                    channel="mtn",
+                )
+                new_payment.save()
+                print("payment saved")
+                print("form valid")
 
-            url = "https://payproxyapi.hubtel.com/items/initiate"
+                url = "https://payproxyapi.hubtel.com/items/initiate"
 
-            payload = json.dumps({
-                "totalAmount": float(amount.price) + (1 / 100) * float(amount.price),
-                "description": "Payment for MTN Bundle",
-                "callbackUrl": "https://www.geosams.com/hubtel_webhook",
-                "returnUrl": "https://www.geosams.com",
-                "cancellationUrl": "https://www.geosams.com",
-                "merchantAccountNumber": "2019751",
-                "clientReference": new_payment.reference
-            })
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
-            }
+                payload = json.dumps({
+                    "totalAmount": float(amount.price) + (1 / 100) * float(amount.price),
+                    "description": "Payment for MTN Bundle",
+                    "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+                    "returnUrl": "https://www.geosams.com",
+                    "cancellationUrl": "https://www.geosams.com",
+                    "merchantAccountNumber": "2019751",
+                    "clientReference": new_payment.reference
+                })
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+                }
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+                response = requests.request("POST", url, headers=headers, data=payload)
 
-            data = response.json()
+                data = response.json()
 
-            checkoutUrl = data['data']['checkoutUrl']
+                checkoutUrl = data['data']['checkoutUrl']
 
-            return redirect(checkoutUrl)
-    user = models.CustomUser.objects.get(id=request.user.id)
-    try:
-        api_user = models.MTNAPIUsers.objects.filter(user=user).first()
-        api_wallet = api_user.wallet_balance
-        context = {'form': form, "ref": reference, "email": user_email,
-                   "wallet": 0 if user.wallet is None else user.wallet, 'api_wallet': api_wallet}
-        return render(request, "layouts/services/mtn.html", context=context)
-    except:
-        context = {'form': form, "ref": reference, "email": user_email,
-                   "wallet": 0 if user.wallet is None else user.wallet}
-        return render(request, "layouts/services/mtn.html", context=context)
+                return redirect(checkoutUrl)
+        user = models.CustomUser.objects.get(id=request.user.id)
+        try:
+            api_user = models.MTNAPIUsers.objects.filter(user=user).first()
+            api_wallet = api_user.wallet_balance
+            context = {'form': form, "ref": reference, "email": user_email,
+                       "wallet": 0 if user.wallet is None else user.wallet, 'api_wallet': api_wallet}
+            return render(request, "layouts/services/mtn.html", context=context)
+        except:
+            context = {'form': form, "ref": reference, "email": user_email,
+                       "wallet": 0 if user.wallet is None else user.wallet}
+            return render(request, "layouts/services/mtn.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @ratelimit(key='ip', rate='10/m')
 @login_required(login_url='login')
 def afa_registration(request):
-    user = models.CustomUser.objects.get(id=request.user.id)
-    reference = helper.ref_generator()
-    price = models.AdminInfo.objects.filter().first().afa_price
-    user_email = request.user.email
-    print(price)
-    if request.method == "POST":
-        form = forms.AFARegistrationForm(request.POST)
-        if form.is_valid():
-            # name = transaction_details["name"]
-            # phone_number = transaction_details["phone"]
-            # gh_card_number = transaction_details["card"]
-            # occupation = transaction_details["occupation"]
-            # date_of_birth = transaction_details["date_of_birth"]
-            details = {
-                "name": form.cleaned_data["name"],
-                "phone": form.cleaned_data["phone_number"],
-                "card": form.cleaned_data["gh_card_number"],
-                "occupation": form.cleaned_data["occupation"],
-                "date_of_birth": form.cleaned_data["date_of_birth"],
-            }
-            new_payment = models.Payment.objects.create(
-                user=request.user,
-                reference=reference,
-                transaction_details=details,
-                transaction_date=datetime.now(),
-                channel="afa"
-            )
-            new_payment.save()
+    if request.user.data_bundle_access:
+        user = models.CustomUser.objects.get(id=request.user.id)
+        reference = helper.ref_generator()
+        price = models.AdminInfo.objects.filter().first().afa_price
+        user_email = request.user.email
+        print(price)
+        if request.method == "POST":
+            form = forms.AFARegistrationForm(request.POST)
+            if form.is_valid():
+                # name = transaction_details["name"]
+                # phone_number = transaction_details["phone"]
+                # gh_card_number = transaction_details["card"]
+                # occupation = transaction_details["occupation"]
+                # date_of_birth = transaction_details["date_of_birth"]
+                details = {
+                    "name": form.cleaned_data["name"],
+                    "phone": form.cleaned_data["phone_number"],
+                    "card": form.cleaned_data["gh_card_number"],
+                    "occupation": form.cleaned_data["occupation"],
+                    "date_of_birth": form.cleaned_data["date_of_birth"],
+                }
+                new_payment = models.Payment.objects.create(
+                    user=request.user,
+                    reference=reference,
+                    transaction_details=details,
+                    transaction_date=datetime.now(),
+                    channel="afa"
+                )
+                new_payment.save()
 
-            url = "https://payproxyapi.hubtel.com/items/initiate"
+                url = "https://payproxyapi.hubtel.com/items/initiate"
 
-            payload = json.dumps({
-                "totalAmount": float(price) + (1 / 100) * float(price),
-                "description": "Payment for AFA Registration",
-                "callbackUrl": "https://www.geosams.com/hubtel_webhook",
-                "returnUrl": "https://www.geosams.com",
-                "cancellationUrl": "https://www.geosams.com",
-                "merchantAccountNumber": "2019751",
-                "clientReference": new_payment.reference
-            })
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
-            }
+                payload = json.dumps({
+                    "totalAmount": float(price) + (1 / 100) * float(price),
+                    "description": "Payment for AFA Registration",
+                    "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+                    "returnUrl": "https://www.geosams.com",
+                    "cancellationUrl": "https://www.geosams.com",
+                    "merchantAccountNumber": "2019751",
+                    "clientReference": new_payment.reference
+                })
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+                }
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+                response = requests.request("POST", url, headers=headers, data=payload)
 
-            data = response.json()
+                data = response.json()
 
-            checkoutUrl = data['data']['checkoutUrl']
+                checkoutUrl = data['data']['checkoutUrl']
 
-            return redirect(checkoutUrl)
-    form = forms.AFARegistrationForm()
-    context = {'form': form, 'ref': reference, 'price': price, "email": user_email,
-               "wallet": 0 if user.wallet is None else user.wallet}
-    return render(request, "layouts/services/afa.html", context=context)
+                return redirect(checkoutUrl)
+        form = forms.AFARegistrationForm()
+        context = {'form': form, 'ref': reference, 'price': price, "email": user_email,
+                   "wallet": 0 if user.wallet is None else user.wallet}
+        return render(request, "layouts/services/afa.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @ratelimit(key='ip', rate='10/m')
@@ -608,92 +621,101 @@ def afa_registration_wallet(request):
 
 @login_required(login_url='login')
 def big_time(request):
-    user = models.CustomUser.objects.get(id=request.user.id)
-    status = user.status
-    form = forms.BigTimeBundleForm(status)
-    reference = helper.ref_generator()
-    user_email = request.user.email
+    if request.user.data_bundle_access:
+        user = models.CustomUser.objects.get(id=request.user.id)
+        status = user.status
+        form = forms.BigTimeBundleForm(status)
+        reference = helper.ref_generator()
+        user_email = request.user.email
 
-    if request.method == "POST":
-        form = forms.BigTimeBundleForm(data=request.POST, status=status)
-        if form.is_valid():
-            phone_number = form.cleaned_data['phone_number']
-            amount = form.cleaned_data['offers']
-            details = {
-                'phone_number': phone_number,
-                'offers': amount.price
-            }
-            new_payment = models.Payment.objects.create(
-                user=request.user,
-                reference=reference,
-                transaction_details=details,
-                transaction_date=datetime.now(),
-                channel="bigtime"
-            )
-            new_payment.save()
+        if request.method == "POST":
+            form = forms.BigTimeBundleForm(data=request.POST, status=status)
+            if form.is_valid():
+                phone_number = form.cleaned_data['phone_number']
+                amount = form.cleaned_data['offers']
+                details = {
+                    'phone_number': phone_number,
+                    'offers': amount.price
+                }
+                new_payment = models.Payment.objects.create(
+                    user=request.user,
+                    reference=reference,
+                    transaction_details=details,
+                    transaction_date=datetime.now(),
+                    channel="bigtime"
+                )
+                new_payment.save()
 
-            url = "https://payproxyapi.hubtel.com/items/initiate"
+                url = "https://payproxyapi.hubtel.com/items/initiate"
 
-            payload = json.dumps({
-                "totalAmount": float(amount.price) + (1 / 100) * float(amount.price),
-                "description": "Payment for AFA Registration",
-                "callbackUrl": "https://www.geosams.com/hubtel_webhook",
-                "returnUrl": "https://www.geosams.com",
-                "cancellationUrl": "https://www.geosams.com",
-                "merchantAccountNumber": "2019751",
-                "clientReference": new_payment.reference
-            })
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
-            }
+                payload = json.dumps({
+                    "totalAmount": float(amount.price) + (1 / 100) * float(amount.price),
+                    "description": "Payment for AFA Registration",
+                    "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+                    "returnUrl": "https://www.geosams.com",
+                    "cancellationUrl": "https://www.geosams.com",
+                    "merchantAccountNumber": "2019751",
+                    "clientReference": new_payment.reference
+                })
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+                }
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+                response = requests.request("POST", url, headers=headers, data=payload)
 
-            data = response.json()
+                data = response.json()
 
-            checkoutUrl = data['data']['checkoutUrl']
+                checkoutUrl = data['data']['checkoutUrl']
 
-            return redirect(checkoutUrl)
-    user = models.CustomUser.objects.get(id=request.user.id)
-    # phone_num = user.phone
-    # mtn_dict = {}
-    #
-    # if user.status == "Agent":
-    #     mtn_offer = models.AgentMTNBundlePrice.objects.all()
-    # else:
-    #     mtn_offer = models.MTNBundlePrice.objects.all()
-    # for offer in mtn_offer:
-    #     mtn_dict[str(offer)] = offer.bundle_volume
-    context = {'form': form,
-               "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
-    return render(request, "layouts/services/big_time.html", context=context)
+                return redirect(checkoutUrl)
+        user = models.CustomUser.objects.get(id=request.user.id)
+        # phone_num = user.phone
+        # mtn_dict = {}
+        #
+        # if user.status == "Agent":
+        #     mtn_offer = models.AgentMTNBundlePrice.objects.all()
+        # else:
+        #     mtn_offer = models.MTNBundlePrice.objects.all()
+        # for offer in mtn_offer:
+        #     mtn_dict[str(offer)] = offer.bundle_volume
+        context = {'form': form,
+                   "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+        return render(request, "layouts/services/big_time.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @login_required(login_url='login')
 def history(request):
-    user_transactions = models.IShareBundleTransaction.objects.filter(user=request.user).order_by(
-        'transaction_date').reverse()
-    header = "AirtelTigo Transactions"
-    net = "tigo"
-    try:
-        user = models.CustomUser.objects.get(id=request.user.id)
-        api_user = models.MTNAPIUsers.objects.filter(user=user).first()
-        context = {'txns': user_transactions, "header": header, "net": net, "api_user": api_user}
-        return render(request, "layouts/history.html", context=context)
-    except:
-        context = {'txns': user_transactions, "header": header, "net": net}
-        return render(request, "layouts/history.html", context=context)
+    if request.user.data_bundle_access:
+        user_transactions = models.IShareBundleTransaction.objects.filter(user=request.user).order_by(
+            'transaction_date').reverse()
+        header = "AirtelTigo Transactions"
+        net = "tigo"
+        try:
+            user = models.CustomUser.objects.get(id=request.user.id)
+            api_user = models.MTNAPIUsers.objects.filter(user=user).first()
+            context = {'txns': user_transactions, "header": header, "net": net, "api_user": api_user}
+            return render(request, "layouts/history.html", context=context)
+        except:
+            context = {'txns': user_transactions, "header": header, "net": net}
+            return render(request, "layouts/history.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @login_required(login_url='login')
 def wallet_history(request):
-    user_wallet_transactions = models.WalletTransaction.objects.filter(user=request.user).order_by(
-        'transaction_date').reverse()[:1000]
-    header = "Wallet Transactions"
-    net = "wallet"
-    context = {'txns': user_wallet_transactions, "header": header, "net": net}
-    return render(request, "layouts/wallet_history.html", context=context)
+    if request.user.data_bundle_access:
+        user_wallet_transactions = models.WalletTransaction.objects.filter(user=request.user).order_by(
+            'transaction_date').reverse()[:1000]
+        header = "Wallet Transactions"
+        net = "wallet"
+        context = {'txns': user_wallet_transactions, "header": header, "net": net}
+        return render(request, "layouts/wallet_history.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @login_required(login_url='login')
@@ -708,30 +730,39 @@ def api_wallet_history(request):
 
 @login_required(login_url='login')
 def mtn_history(request):
-    user_transactions = models.MTNTransaction.objects.filter(user=request.user).order_by('transaction_date').reverse()
-    header = "MTN Transactions"
-    net = "mtn"
-    context = {'txns': user_transactions, "header": header, "net": net}
-    return render(request, "layouts/history.html", context=context)
+    if request.user.data_bundle_access:
+        user_transactions = models.MTNTransaction.objects.filter(user=request.user).order_by('transaction_date').reverse()
+        header = "MTN Transactions"
+        net = "mtn"
+        context = {'txns': user_transactions, "header": header, "net": net}
+        return render(request, "layouts/history.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @login_required(login_url='login')
 def big_time_history(request):
-    user_transactions = models.BigTimeTransaction.objects.filter(user=request.user).order_by(
-        'transaction_date').reverse()
-    header = "Big Time Transactions"
-    net = "bt"
-    context = {'txns': user_transactions, "header": header, "net": net}
-    return render(request, "layouts/history.html", context=context)
+    if request.user.data_bundle_access:
+        user_transactions = models.BigTimeTransaction.objects.filter(user=request.user).order_by(
+            'transaction_date').reverse()
+        header = "Big Time Transactions"
+        net = "bt"
+        context = {'txns': user_transactions, "header": header, "net": net}
+        return render(request, "layouts/history.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 @login_required(login_url='login')
 def afa_history(request):
-    user_transactions = models.AFARegistration.objects.filter(user=request.user).order_by('transaction_date').reverse()
-    header = "AFA Registrations"
-    net = "afa"
-    context = {'txns': user_transactions, "header": header, "net": net}
-    return render(request, "layouts/afa_history.html", context=context)
+    if request.user.data_bundle_access:
+        user_transactions = models.AFARegistration.objects.filter(user=request.user).order_by('transaction_date').reverse()
+        header = "AFA Registrations"
+        net = "afa"
+        context = {'txns': user_transactions, "header": header, "net": net}
+        return render(request, "layouts/afa_history.html", context=context)
+    else:
+        return redirect("shop_home")
 
 
 def verify_transaction(request, reference):

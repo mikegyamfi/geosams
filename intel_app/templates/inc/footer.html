@@ -9,7 +9,7 @@
         <div class="col-lg-3 py-3">
           <h5>Quick Links</h5>
           <ul class="footer-menu">
-            <li><a href="{% url 'services' %}">How it works</a></li>
+            <li><a href="{% url 'shop' %}">How it works</a></li>
             <li><a href="{% url 'shop' %}">Shop</a></li>
             <li><a href="{% url 't_and_c' %}">Terms and Conditions</a></li>
           </ul>
@@ -17,9 +17,13 @@
         <div class="col-lg-3 py-3">
           <h5>Services</h5>
           <ul class="footer-menu">
+            {% if request.user.is_authenticated %}
+            {% if request.user.data_bundle_access %}
             <li><a href="{% url 'airtel-tigo' %}">AirtelTigo</a></li>
             <li><a href="{% url 'mtn' %}">MTN</a></li>
             <li><a href="{% url 'history' %}">Dashboard</a></li>
+            {% endif %}
+            {% endif %}
           </ul>
         </div>
         <div class="col-lg-3 py-3">

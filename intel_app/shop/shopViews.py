@@ -18,8 +18,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 from intel_app import models, forms
 
-@login_required(login_url='login')
+# @login_required(login_url='login')
 def shop_home_collections(request):
+    if request.user.is_authenticated and request.user.data_bundle_access:
+        return redirect("home")
     general_categories = models.Category.objects.all().order_by('name')
     context = {'general_categories': general_categories}
     return render(request, 'shop/collections.html', context=context)
