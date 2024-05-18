@@ -516,6 +516,8 @@ def afa_registration(request):
         user = models.CustomUser.objects.get(id=request.user.id)
         reference = helper.ref_generator()
         price = models.AdminInfo.objects.filter().first().afa_price
+        if user.status == "Super Agent":
+            price = models.AdminInfo.objects.filter().first().afa_super_agent_price
         user_email = request.user.email
         print(price)
         if request.method == "POST":
@@ -586,6 +588,8 @@ def afa_registration_wallet(request):
         occupation = request.POST.get("occupation")
         date_of_birth = request.POST.get("birth")
         price = models.AdminInfo.objects.filter().first().afa_price
+        if user.status == "Super Agent":
+            price = models.AdminInfo.objects.filter().first().afa_super_agent_price
 
         if user.wallet is None:
             return JsonResponse(

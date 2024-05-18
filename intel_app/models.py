@@ -44,6 +44,7 @@ class AdminInfo(models.Model):
     )
     payment_channell = models.CharField(max_length=250, choices=choices)
     afa_price = models.FloatField(null=True, blank=True)
+    afa_super_agent_price = models.FloatField(null=True, blank=True)
     sign_up_active = models.BooleanField(default=False)
 
 
@@ -263,6 +264,9 @@ class MTNAPIUsers(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     wallet_balance = models.FloatField(null=False, blank=False)
     key = models.CharField(max_length=150, null=False, blank=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.wallet_balance}"
 
 
 class APIUsersHistory(models.Model):
