@@ -83,6 +83,7 @@ admin.site.register(models.SuperAgentMTNBundlePrice)
 admin.site.register(models.BigTimeBundlePrice)
 admin.site.register(models.AgentBigTimeBundlePrice)
 admin.site.register(models.SuperAgentBigTimeBundlePrice)
+admin.site.register(models.AgentRegistration)
 
 admin.site.register(models.APIMTNBundlePrice)
 admin.site.register(models.MTNAPIUsers)

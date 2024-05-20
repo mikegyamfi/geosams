@@ -32,6 +32,12 @@ class CustomUser(AbstractUser):
         return self.username
 
 
+class AgentRegistration(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    amount = models.FloatField(null=False, blank=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+
 class AdminInfo(models.Model):
     name = models.CharField(max_length=250, null=True, blank=True)
     phone_number = models.BigIntegerField(null=True, blank=True)
@@ -46,6 +52,7 @@ class AdminInfo(models.Model):
     afa_price = models.FloatField(null=True, blank=True)
     afa_super_agent_price = models.FloatField(null=True, blank=True)
     sign_up_active = models.BooleanField(default=False)
+    agent_price = models.FloatField(null=True, blank=True)
 
 
 class IShareBundleTransaction(models.Model):

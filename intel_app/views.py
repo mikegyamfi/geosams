@@ -22,7 +22,76 @@ from django_ratelimit.decorators import ratelimit
 
 # Create your views here.
 def home(request):
-    return render(request, "layouts/index.html")
+    agent_price = models.AdminInfo.objects.filter().first().agent_price
+    context = {
+        "agent_price": agent_price,
+    }
+    return render(request, "layouts/index.html", context=context)
+
+
+@login_required(login_url='login')
+def register_as_agent(request):
+    agent_price = models.AdminInfo.objects.filter().first().agent_price
+    url = "https://payproxyapi.hubtel.com/items/initiate"
+
+    reference = helper.ref_generator()
+
+    details = {
+        "amount": agent_price,
+    }
+
+    new_payment = models.Payment.objects.create(
+        user=request.user,
+        reference=reference,
+        transaction_date=datetime.now(),
+        transaction_details=details,
+        channel="agent",
+    )
+    new_payment.save()
+
+    payload = json.dumps({
+        "totalAmount": float(agent_price) + (1 / 100) * float(agent_price),
+        "description": "N/A",
+        "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+        "returnUrl": "https://www.geosams.com",
+        "cancellationUrl": "https://www.geosams.com",
+        "merchantAccountNumber": "2019751",
+        "clientReference": new_payment.reference
+    })
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    data = response.json()
+
+    checkoutUrl = data['data']['checkoutUrl']
+
+    return redirect(checkoutUrl)
+
+
+@login_required(login_url='login')
+def register_as_agent_wallet(request):
+    if request.user.data_bundle_access:
+        agent_price = models.AdminInfo.objects.filter().first().agent_price
+        user = models.CustomUser.objects.get(id=request.user.id)
+        if user.status == "Agent":
+            return JsonResponse({"status": "User is already an agent"})
+        if float(user.wallet) < float(agent_price):
+            return JsonResponse({"status": "Insufficient Balance"})
+        user.wallet -= float(agent_price)
+        user.status = "Agent"
+        user.save()
+        new_registration = models.AgentRegistration.objects.create(
+            amount=agent_price,
+            user=user
+        )
+        new_registration.save()
+        return JsonResponse({"status": "Registration Successful"})
+    else:
+        return redirect("shop_home")
 
 
 @login_required(login_url='login')
@@ -318,7 +387,8 @@ def airtel_tigo(request):
         #         # print(response.text)
         #         return JsonResponse({'status': 'Something went wrong', 'icon': 'error'})
         user = models.CustomUser.objects.get(id=request.user.id)
-        context = {"form": form, "ref": reference, "email": user_email, "wallet": 0 if user.wallet is None else user.wallet}
+        context = {"form": form, "ref": reference, "email": user_email,
+                   "wallet": 0 if user.wallet is None else user.wallet}
         return render(request, "layouts/services/at.html", context=context)
     else:
         return redirect("shop_home")
@@ -735,7 +805,8 @@ def api_wallet_history(request):
 @login_required(login_url='login')
 def mtn_history(request):
     if request.user.data_bundle_access:
-        user_transactions = models.MTNTransaction.objects.filter(user=request.user).order_by('transaction_date').reverse()
+        user_transactions = models.MTNTransaction.objects.filter(user=request.user).order_by(
+            'transaction_date').reverse()
         header = "MTN Transactions"
         net = "mtn"
         context = {'txns': user_transactions, "header": header, "net": net}
@@ -760,7 +831,8 @@ def big_time_history(request):
 @login_required(login_url='login')
 def afa_history(request):
     if request.user.data_bundle_access:
-        user_transactions = models.AFARegistration.objects.filter(user=request.user).order_by('transaction_date').reverse()
+        user_transactions = models.AFARegistration.objects.filter(user=request.user).order_by(
+            'transaction_date').reverse()
         header = "AFA Registrations"
         net = "afa"
         context = {'txns': user_transactions, "header": header, "net": net}
@@ -1298,6 +1370,72 @@ def hubtel_webhook(request):
                     )
                     new_topup.save()
                     return JsonResponse({'status': "Wallet Credited"}, status=200)
+                elif transaction_channel == "commerce":
+                    name = transaction_details["name"]
+                    email = transaction_details["email"]
+                    phone = transaction_details["phone"]
+                    address = transaction_details["address"]
+                    city = transaction_details["city"]
+                    region = transaction_details["region"]
+                    message = transaction_details["message"]
+
+                    new_order_items = models.Cart.objects.filter(user=user)
+                    cart = models.Cart.objects.filter(user=user)
+                    cart_total_price = 0
+                    for item in cart:
+                        cart_total_price += item.product.selling_price * item.product_qty
+                    print(cart_total_price)
+
+                    order_instance = models.Order.objects.create(
+                        user=user,
+                        full_name=name,
+                        email=email,
+                        phone=phone,
+                        address=address,
+                        city=city,
+                        region=region,
+                        total_price=cart_total_price,
+                        payment_mode="Hubtel",
+                        message=message,
+                        tracking_number=reference,
+                    )
+                    order_instance.save()
+
+                    for item in new_order_items:
+                        models.OrderItem.objects.create(
+                            order=order_instance,
+                            product=item.product,
+                            tracking_number=order_instance.tracking_number,
+                            price=item.product.selling_price,
+                            quantity=item.product_qty
+                        )
+                        order_product = models.Product.objects.filter(id=item.product_id).first()
+                        order_product.quantity -= item.product_qty
+                        order_product.save()
+
+                    models.Cart.objects.filter(user=request.user).delete()
+
+                    sms_message = f"Order Placed Successfully\nYour order with order number {order_instance.tracking_number} has been received and is being processed.\nYou will receive a message when your order is Out for Delivery.\nThank you for shopping with GeoSams"
+
+                    try:
+                        response1 = requests.get(
+                            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{order_instance.phone}&from=GEOS_AT&sms={sms_message}")
+                        print(response1.text)
+                    except:
+                        print("Could not send sms message")
+                    return JsonResponse({'message': "Order Placed"}, status=200)
+                elif transaction_channel == "agent":
+                    amount = transaction_details["amount"]
+
+                    new_registration = models.AgentRegistration.objects.create(
+                        amount=amount,
+                        user=user
+                    )
+                    new_registration.save()
+
+                    user.status = "Agent"
+                    user.save()
+                    return JsonResponse({'message': 'Transaction Successful'}, status=200)
                 else:
                     print("no type found")
                     return JsonResponse({'message': "No Type Found"}, status=500)

@@ -135,69 +135,128 @@ def delete_cart_item(request):
 def checkout(request):
     if request.method == 'POST':
         print("posted")
+        payment_channel = request.POST.get('payment_channel')
+
+        if payment_channel not in ["hubtel", "wallet"]:
+            return JsonResponse({'status': 'Invalid payment channel.'}, status=400)
         form = forms.OrderDetailsForm(request.POST)
         user = models.CustomUser.objects.filter(id=request.user.id).first()
         if form.is_valid():
-            new_order_items = models.Cart.objects.filter(user=request.user)
-            cart = models.Cart.objects.filter(user=request.user)
-            cart_total_price = 0
-            for item in cart:
-                cart_total_price += item.product.selling_price * item.product_qty
-            print(cart_total_price)
-            print(user.wallet)
-            if user.wallet == 0 or user.wallet is None or cart_total_price > user.wallet:
-                messages.info(request, "Not enough wallet balance")
-                return redirect('checkout')
-            order_form = form.save(commit=False)
-            order_form.payment_mode = "Wallet"
-            ref = 'BP' + str(random.randint(11111111, 99999999))
-            while models.Payment.objects.filter(reference=ref) is None:
+            if payment_channel == "wallet":
+                new_order_items = models.Cart.objects.filter(user=request.user)
+                cart = models.Cart.objects.filter(user=request.user)
+                cart_total_price = 0
+                for item in cart:
+                    cart_total_price += item.product.selling_price * item.product_qty
+                print(cart_total_price)
+                print(user.wallet)
+                if user.wallet == 0 or user.wallet is None or cart_total_price > user.wallet:
+                    messages.info(request, "Not enough wallet balance")
+                    return redirect('checkout')
+                order_form = form.save(commit=False)
+                order_form.payment_mode = "Wallet"
                 ref = 'BP' + str(random.randint(11111111, 99999999))
-            current_user = models.CustomUser.objects.filter(id=request.user.id).first()
-            order_form.total_price = cart_total_price
-            order_form.user = current_user
-            order_form.tracking_number = ref
-            order_form.save()
+                while models.Payment.objects.filter(reference=ref) is None:
+                    ref = 'BP' + str(random.randint(11111111, 99999999))
+                current_user = models.CustomUser.objects.filter(id=request.user.id).first()
+                order_form.total_price = cart_total_price
+                order_form.user = current_user
+                order_form.tracking_number = ref
+                order_form.save()
 
-            for item in new_order_items:
-                models.OrderItem.objects.create(
-                    order=order_form,
-                    product=item.product,
-                    tracking_number=order_form.tracking_number,
-                    price=item.product.selling_price,
-                    quantity=item.product_qty
+                for item in new_order_items:
+                    models.OrderItem.objects.create(
+                        order=order_form,
+                        product=item.product,
+                        tracking_number=order_form.tracking_number,
+                        price=item.product.selling_price,
+                        quantity=item.product_qty
+                    )
+                    order_product = models.Product.objects.filter(id=item.product_id).first()
+                    order_product.quantity -= item.product_qty
+                    order_product.save()
+
+                models.Cart.objects.filter(user=request.user).delete()
+
+                user.wallet -= cart_total_price
+                user.save()
+
+                sms_headers = {
+                    'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
+                    'Content-Type': 'application/json'
+                }
+
+                sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+                sms_message = f"Order Placed Successfully\nYour order with order number {order_form.tracking_number} has been received and is being processed.\nYou will receive a message when your order is Out for Delivery.\nThank you for shopping with GeoSams"
+
+                sms_body = {
+                    'recipient': f"233{order_form.phone}",
+                    'sender_id': 'GEO_AT',
+                    'message': sms_message
+                }
+                try:
+                    response1 = requests.get(
+                        f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{order_form.phone}&from=GEOS_AT&sms={sms_message}")
+                    print(response1.text)
+                except:
+                    print("Could not send sms message")
+
+                messages.success(request, "Your order has been placed")
+                return redirect('cart')
+            elif payment_channel == "hubtel":
+                ref = 'GS' + str(random.randint(11111111, 99999999))
+                while models.Payment.objects.filter(reference=ref) is None:
+                    ref = 'GS' + str(random.randint(11111111, 99999999))
+
+                cart_items = models.Cart.objects.filter(user=request.user)
+                total_price = 0
+                for item in cart_items:
+                    total_price += item.product.selling_price * item.product_qty
+
+                details = {
+                    "name": form.cleaned_data["full_name"],
+                    "email": form.cleaned_data["email"],
+                    "phone": form.cleaned_data["phone"],
+                    "address": form.cleaned_data["address"],
+                    "city": form.cleaned_data["city"],
+                    "region": form.cleaned_data["region"],
+                    "message": form.cleaned_data["message"],
+                }
+                new_payment = models.Payment.objects.create(
+                    user=request.user,
+                    reference=ref,
+                    transaction_details=details,
+                    transaction_date=datetime.now(),
+                    channel="commerce"
                 )
-                order_product = models.Product.objects.filter(id=item.product_id).first()
-                order_product.quantity -= item.product_qty
-                order_product.save()
+                new_payment.save()
 
-            models.Cart.objects.filter(user=request.user).delete()
+                url = "https://payproxyapi.hubtel.com/items/initiate"
 
-            user.wallet -= cart_total_price
-            user.save()
+                payload = json.dumps({
+                    "totalAmount": float(total_price) + ((1 / 100) * float(total_price)),
+                    "description": "N/A",
+                    "callbackUrl": "https://www.geosams.com/hubtel_webhook",
+                    "returnUrl": "https://www.geosams.com",
+                    "cancellationUrl": "https://www.geosams.com",
+                    "merchantAccountNumber": "2019751",
+                    "clientReference": new_payment.reference
+                })
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+                }
 
-            sms_headers = {
-                'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
-                'Content-Type': 'application/json'
-            }
+                response = requests.request("POST", url, headers=headers, data=payload)
 
-            sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-            sms_message = f"Order Placed Successfully\nYour order with order number {order_form.tracking_number} has been received and is being processed.\nYou will receive a message when your order is Out for Delivery.\nThank you for shopping with BestPlug"
+                data = response.json()
 
-            sms_body = {
-                'recipient': f"233{order_form.phone}",
-                'sender_id': 'GEO_AT',
-                'message': sms_message
-            }
-            try:
-                response1 = requests.get(
-                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{order_form.phone}&from=GEOS_AT&sms={sms_message}")
-                print(response1.text)
-            except:
-                print("Could not send sms message")
+                checkoutUrl = data['data']['checkoutUrl']
 
-            messages.success(request, "Your order has been placed")
-            return redirect('cart')
+                return redirect(checkoutUrl)
+            else:
+                messages.error(request, "Something went wrong")
+                return redirect('checkout')
         else:
             messages.error(request, "Invalid Form Submission")
             return redirect('checkout')
@@ -218,9 +277,9 @@ def checkout(request):
 
     total_price_paystack = total_price * 100
 
-    ref = 'BP' + str(random.randint(11111111, 99999999))
+    ref = 'GS' + str(random.randint(11111111, 99999999))
     while models.Payment.objects.filter(reference=ref) is None:
-        ref = 'BP' + str(random.randint(11111111, 99999999))
+        ref = 'GS' + str(random.randint(11111111, 99999999))
     form = forms.OrderDetailsForm(
         initial={
             'full_name': f"{request.user.first_name} {request.user.last_name}",

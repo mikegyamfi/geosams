@@ -55,7 +55,7 @@
         {% if request.user.is_authenticated %}
         <div class="ml-auto">
           <div class="dropdown">
-          <button href="#" class="btn btn-outline rounded-pill dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{{request.user}}</button>
+          <button href="#" class="btn btn-outline rounded-pill dropdown-toggle" data-toggle="dropdown" aria-expanded="false">{{request.user}} - {{request.user.status}}</button>
             <div class="dropdown-menu">
                 <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
                 <a href="{% url 'orders' %}" class="dropdown-item">My Orders</a>

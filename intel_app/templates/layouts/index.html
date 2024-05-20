@@ -15,9 +15,19 @@
             <a href="https://chat.whatsapp.com/DRLT3lPlKUc0FDEBaGfjcU" class="btn btn-primary mb-3">Join Our Community</a>
           </div>
           <div class="col-lg-6 py-3 wow zoomIn">
+            {% if request.user.is_authenticated and request.user.status == "User" %}
+                <div class="border-0 rounded-left rounded-top shadow p-3" style="background-image: linear-gradient(to right top, #ffffff, #ffffff, #205B6E);">
+                  <span class="text-primary">Hi {{request.user.first_name}},<br>Did you know you could become an agent?</span>
+                  <p class="text-primary">Become an agent for just:</p>
+                  <h3 class="text-primary">GH₵ {{agent_price}}</h3>
+<!--                  <a class="btn btn-outline-primary my-2" href="{% url 'register_agent' %}">Pay Online</a>-->
+                  <button class="btn btn-outline-primary my-2" onclick="register_wallet()">Pay with Wallet</button>
+                </div>
+            {% else %}
             <div class="img-place">
               <lottie-player src="https://lottie.host/ce9ded54-c04c-4149-bdc4-a597d039d6d7/fGPu293yal.json"  background="transparent"  speed="1"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player>
             </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -130,3 +140,38 @@
   {% include 'inc/footer.html' %}
 
   {% endblock%}
+
+
+{% block scripts %}
+<script>
+  function register_wallet(){
+    Swal.fire({
+  text: "Do you want to register to become an agent?",
+  showCancelButton: true,
+  confirmButtonText: "Yes",
+      icon: "info"
+}).then((result) => {
+  /* Read more about isConfirmed, isDenied below */
+  if (result.isConfirmed) {
+    $.ajax({
+        url: '/agent_registration_wallet',
+        type: 'GET',
+        success: function(response) {
+            console.log(response.status);
+            Swal.fire({text: "Registration Successful", icon: "success", confirmButtonText: "Great"}).then((result) => {
+              location.reload()
+          });
+        },
+        error: function(error) {
+          Swal.fire({text: "Registration Unsuccessful", icon: "error"});
+            console.error('Something went wrong', error);
+            location.reload()
+        }
+    });
+  } else if (result.isDenied) {
+    Swal.fire("Changes are not saved", "", "info");
+  }
+});
+  }
+</script>
+{% endblock scripts %}

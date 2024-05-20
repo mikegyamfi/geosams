@@ -39,6 +39,8 @@ urlpatterns = [
                   path('big_time_pay_with_wallet/', views.big_time_pay_with_wallet, name='big_time_pay_with_wallet'),
                   path('afa_pay_with_wallet/', views.afa_registration_wallet, name='afa_pay_with_wallet'),
                   path('hubtel_webhook', views.hubtel_webhook, name='hubtel_webhook'),
+                  path('agent_registration', views.register_as_agent, name='register_agent'),
+                  path('agent_registration_wallet', views.register_as_agent_wallet, name='register_agent_wallet'),
 
                   path('topup-info', views.topup_info, name='topup-info'),
                   path("request_successful/<str:reference>", views.request_successful, name='request_successful'),
