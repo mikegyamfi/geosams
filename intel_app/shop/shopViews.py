@@ -18,13 +18,13 @@ from django.views.decorators.csrf import csrf_exempt
 
 from intel_app import models, forms
 
+
 # @login_required(login_url='login')
 def shop_home_collections(request):
-    if request.user.is_authenticated and request.user.data_bundle_access:
-        return redirect("home")
     general_categories = models.Category.objects.all().order_by('name')
     context = {'general_categories': general_categories}
     return render(request, 'shop/collections.html', context=context)
+
 
 @login_required(login_url='login')
 def collection_products(request, category_name):
@@ -99,6 +99,7 @@ def viewcart(request):
     cart = models.Cart.objects.filter(user=request.user)
     context = {'cart': cart}
     return render(request, 'shop/cart.html', context)
+
 
 @login_required(login_url='login')
 def update_cart(request):
@@ -286,6 +287,7 @@ def search_product(request):
                 return redirect(request.META.get('HTTP_REFERER'))
     return redirect(request.META.get('HTTP_REFERER'))
 
+
 @login_required(login_url='login')
 def change_order_status(request, t_no, stat):
     order = models.Order.objects.filter(tracking_number=t_no).first()
@@ -360,4 +362,3 @@ def change_order_status(request, t_no, stat):
     else:
         messages.error(request, "Access Denied")
         return redirect('view_order', t_no=t_no)
-
