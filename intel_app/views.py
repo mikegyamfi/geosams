@@ -77,7 +77,7 @@ def register_as_agent_wallet(request):
     if request.user.data_bundle_access:
         agent_price = models.AdminInfo.objects.filter().first().agent_price
         user = models.CustomUser.objects.get(id=request.user.id)
-        if user.status == "Agent":
+        if user.status == "Agent" or user.status == "Super Agent":
             return JsonResponse({"status": "User is already an agent"})
         if float(user.wallet) < float(agent_price):
             return JsonResponse({"status": "Insufficient Balance"})
