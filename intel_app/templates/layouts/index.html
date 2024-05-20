@@ -158,7 +158,7 @@
         type: 'GET',
         success: function(response) {
             console.log(response.status);
-            Swal.fire({text: "Registration Successful", icon: "success", confirmButtonText: "Great"}).then((result) => {
+            Swal.fire({text: response.status, icon: response.icon, confirmButtonText: "Okay"}).then((result) => {
               location.reload()
           });
         },
