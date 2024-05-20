@@ -55,6 +55,9 @@ class PaymentAdmin(admin.ModelAdmin):
 class TopUpRequestAdmin(admin.ModelAdmin):
     list_display = ['user', 'reference', 'amount', 'date', 'status']
 
+class AgentRegAdmin(admin.ModelAdmin):
+    list_display = ['user', 'amount', 'date']
+
 
 class ProductImageInline(admin.TabularInline):  # or admin.StackedInline
     model = models.ProductImage
@@ -83,7 +86,7 @@ admin.site.register(models.SuperAgentMTNBundlePrice)
 admin.site.register(models.BigTimeBundlePrice)
 admin.site.register(models.AgentBigTimeBundlePrice)
 admin.site.register(models.SuperAgentBigTimeBundlePrice)
-admin.site.register(models.AgentRegistration)
+admin.site.register(models.AgentRegistration, AgentRegAdmin)
 
 admin.site.register(models.APIMTNBundlePrice)
 admin.site.register(models.MTNAPIUsers)
