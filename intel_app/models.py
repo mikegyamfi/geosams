@@ -106,6 +106,7 @@ class MTNTransaction(models.Model):
     transaction_date = models.DateTimeField(auto_now_add=True)
     choices = (
         ("Pending", "Pending"),
+        ("Processing", "Processing"),
         ("Completed", "Completed"),
         ("Failed", "Failed")
     )
