@@ -22,7 +22,8 @@ urlpatterns = [
                   path('history/afa', views.afa_history, name="afa-history"),
                   path('verify_transaction/<str:reference>/', views.verify_transaction, name="verify_transaction"),
 
-                  path('mtn_admin', views.admin_mtn_history, name='mtn_admin'),
+                  path('mtn_admin/<str:status>', views.admin_mtn_history, name='mtn_admin'),
+                  path('excel_status/<str:status>/<str:to_change_to>', views.change_excel_status, name='excel_status'),
 
                   path('mark_as_sent/<int:pk>', views.mark_as_sent, name='mark_as_sent'),
                   path('bt_admin', views.admin_bt_history, name='bt_admin'),

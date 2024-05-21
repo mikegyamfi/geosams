@@ -14,6 +14,27 @@
                 <h2 class="title-section">Transaction History</h2>
                 <div class="divider mx-auto"></div>
                 <h5>MTN</h5>
+                <a class="btn btn-outline-danger" href="{% url 'mtn_admin' status='Pending' %}">Pending</a>
+                <a class="btn btn-outline-warning" href="{% url 'mtn_admin' status='Processing' %}">Processing</a>
+                <a class="btn btn-outline-success" href="{% url 'mtn_admin' status='Completed' %}">Completed</a>
+
+                {% if status == "Pending" %}
+                <div class="row my-3 justify-content-center">
+                    <form method="post" action="" class="row justify-content-center" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="file" name="file" class="form-control col-lg-8 my-1" placeholder="Upload Excel File">
+                        <button class="col-lg-4 btn btn-primary ml-2" type="submit">Export</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if status == "Processing" %}
+                <div class="my-2">
+                    <a class="btn btn-outline-danger" href="{% url 'excel_status' status='Processing' to_change_to='Pending' %}">Change to Pending</a>
+                    <a class="btn btn-outline-success" href="{% url 'excel_status' status='Processing' to_change_to='Completed' %}">Change
+                        to Completed</a>
+                    </div>
+                {% endif %}
             </div>
 
             <div class="table-responsive">
