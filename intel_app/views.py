@@ -1537,7 +1537,7 @@ def hubtel_webhook(request):
 
                     try:
                         response1 = requests.get(
-                            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{order_instance.phone}&from=GEOS_AT&sms={sms_message}")
+                            f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{order_instance.phone}&from=GEO_AT&sms={sms_message}")
                         print(response1.text)
                     except:
                         print("Could not send sms message")
