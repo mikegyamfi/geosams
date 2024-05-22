@@ -1531,7 +1531,7 @@ def hubtel_webhook(request):
                         order_product.quantity -= item.product_qty
                         order_product.save()
 
-                    models.Cart.objects.filter(user=request.user).delete()
+                    models.Cart.objects.filter(user=user).delete()
 
                     sms_message = f"Order Placed Successfully\nYour order with order number {order_instance.tracking_number} has been received and is being processed.\nYou will receive a message when your order is Out for Delivery.\nThank you for shopping with GeoSams"
 
