@@ -94,9 +94,7 @@
             <input type="hidden" class="reference" name="ref" value="{{ref}}">
                   <input type="hidden" class="email" name="email" value="{{email}}">
 <!--              <button class="btn btn-success col-md-12 mt-3" type="submit" onclick="payWithPaystack()">Pay Online</button>-->
-                  {% if request.user.is_superuser %}
               <button class="btn btn-outline-primary col-md-12 mt-3" type="button" onclick="submitForm('hubtel')">Pay Online</button>
-                  {% endif %}
               <button class="btn btn-outline-primary col-md-12 mt-3" type="button" onclick="submitForm('wallet')">Pay with Wallet</button>
               <p class="mt-2">Wallet Balance: GHS{{wallet}}</p>
             {% else %}
