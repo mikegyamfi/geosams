@@ -239,12 +239,12 @@ def checkout(request):
                     "callbackUrl": "https://www.geosams.com/hubtel_webhook",
                     "returnUrl": "https://www.geosams.com",
                     "cancellationUrl": "https://www.geosams.com",
-                    "merchantAccountNumber": "2019751",
+                    "merchantAccountNumber": "2021482",
                     "clientReference": new_payment.reference
                 })
                 headers = {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Basic TnhvOFo2ejpjNDRlYmRiZTNjMWY0ZTgxODliNDU2MTE4OGQ3MjkyYg=='
+                    'Authorization': config("HUBTEL_TOKEN")
                 }
 
                 response = requests.request("POST", url, headers=headers, data=payload)
