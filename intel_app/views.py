@@ -1465,7 +1465,8 @@ def hubtel_webhook(request):
                     new_afa_reg.save()
                     return JsonResponse({'status': "Your transaction will be completed shortly"}, status=200)
                 elif transaction_channel == "topup":
-                    amount = transaction_details["topup_amount"]
+                    amount = amount
+                    amount = round(amount - (amount * 0.01))
 
                     user.wallet += float(amount)
                     user.save()
