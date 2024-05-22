@@ -1477,6 +1477,15 @@ def hubtel_webhook(request):
                         status=True,
                     )
                     new_topup.save()
+
+                    new_wallet_transaction = models.WalletTransaction.objects.create(
+                        user=user,
+                        transaction_type="Credit",
+                        transaction_amount=float(amount),
+                        transaction_use="Top up (Hubtel)",
+                        new_balance=user.wallet
+                    )
+                    new_wallet_transaction.save()
                     return JsonResponse({'status': "Wallet Credited"}, status=200)
                 elif transaction_channel == "commerce":
                     name = transaction_details["name"]
