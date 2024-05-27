@@ -764,7 +764,7 @@ def big_time(request):
 def history(request):
     if request.user.data_bundle_access:
         user_transactions = models.IShareBundleTransaction.objects.filter(user=request.user).order_by(
-            'transaction_date').reverse()
+            'transaction_date').reverse()[:200]
         header = "AirtelTigo Transactions"
         net = "tigo"
         try:
@@ -783,7 +783,7 @@ def history(request):
 def wallet_history(request):
     if request.user.data_bundle_access:
         user_wallet_transactions = models.WalletTransaction.objects.filter(user=request.user).order_by(
-            'transaction_date').reverse()[:1000]
+            'transaction_date').reverse()[:500]
         header = "Wallet Transactions"
         net = "wallet"
         context = {'txns': user_wallet_transactions, "header": header, "net": net}
@@ -795,7 +795,7 @@ def wallet_history(request):
 @login_required(login_url='login')
 def api_wallet_history(request):
     user_wallet_transactions = models.ApiWalletTransaction.objects.filter(user=request.user).order_by(
-        'transaction_date').reverse()[:1000]
+        'transaction_date').reverse()[:500]
     header = "API Wallet Transactions"
     net = "api_wallet"
     context = {'txns': user_wallet_transactions, "header": header, "net": net}
@@ -806,7 +806,7 @@ def api_wallet_history(request):
 def mtn_history(request):
     if request.user.data_bundle_access:
         user_transactions = models.MTNTransaction.objects.filter(user=request.user).order_by(
-            'transaction_date').reverse()
+            'transaction_date').reverse()[:800]
         header = "MTN Transactions"
         net = "mtn"
         context = {'txns': user_transactions, "header": header, "net": net}
@@ -819,7 +819,7 @@ def mtn_history(request):
 def big_time_history(request):
     if request.user.data_bundle_access:
         user_transactions = models.BigTimeTransaction.objects.filter(user=request.user).order_by(
-            'transaction_date').reverse()
+            'transaction_date').reverse()[:200]
         header = "Big Time Transactions"
         net = "bt"
         context = {'txns': user_transactions, "header": header, "net": net}
@@ -832,7 +832,7 @@ def big_time_history(request):
 def afa_history(request):
     if request.user.data_bundle_access:
         user_transactions = models.AFARegistration.objects.filter(user=request.user).order_by(
-            'transaction_date').reverse()
+            'transaction_date').reverse()[:200]
         header = "AFA Registrations"
         net = "afa"
         context = {'txns': user_transactions, "header": header, "net": net}
