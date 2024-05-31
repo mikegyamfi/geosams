@@ -22,6 +22,12 @@ urlpatterns = [
                   path('history/afa', views.afa_history, name="afa-history"),
                   path('verify_transaction/<str:reference>/', views.verify_transaction, name="verify_transaction"),
 
+                  path('services/voda/', views.voda, name='voda'),
+                  path('history/voda', views.voda_history, name="voda-history"),
+                  path('voda_admin', views.admin_voda_history, name='voda_admin'),
+                  path('voda_mark_as_sent/<int:pk>', views.voda_mark_as_sent, name='voda_mark_as_sent'),
+                  path('voda_pay_with_wallet/', views.voda_pay_with_wallet, name='voda_pay_with_wallet'),
+
                   path('mtn_admin/<str:status>', views.admin_mtn_history, name='mtn_admin'),
                   path('excel_status/<str:status>/<str:to_change_to>', views.change_excel_status, name='excel_status'),
 
