@@ -55,8 +55,14 @@ class PaymentAdmin(admin.ModelAdmin):
 class TopUpRequestAdmin(admin.ModelAdmin):
     list_display = ['user', 'reference', 'amount', 'date', 'status']
 
+
 class AgentRegAdmin(admin.ModelAdmin):
     list_display = ['user', 'amount', 'date']
+
+
+class VodafoneTransactionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
+    search_fields = ['reference', 'bundle_number']
 
 
 class ProductImageInline(admin.TabularInline):  # or admin.StackedInline
@@ -87,6 +93,11 @@ admin.site.register(models.BigTimeBundlePrice)
 admin.site.register(models.AgentBigTimeBundlePrice)
 admin.site.register(models.SuperAgentBigTimeBundlePrice)
 admin.site.register(models.AgentRegistration, AgentRegAdmin)
+
+admin.site.register(models.AgentVodaBundlePrice)
+admin.site.register(models.VodafoneTransaction, VodafoneTransactionAdmin)
+admin.site.register(models.VodaBundlePrice)
+admin.site.register(models.SuperAgentVodaBundlePrice)
 
 admin.site.register(models.APIMTNBundlePrice)
 admin.site.register(models.MTNAPIUsers)
