@@ -32,13 +32,15 @@
               <div class="divider mx-auto"></div>
           </div>
 
-        <form action="" method="post">
+        <form action="" method="post" id="topupform">
           {% csrf_token %}
+          <input type="hidden" value={{email}} class="email">
+              <input type="hidden" value={{ref}} class="reference">
           <div class="form-group col-md-6">
                 <label>Amount Paid</label>
-                <input name="amount" class="form-control" type="number" step="0.1" placeholder="100" required>
+                <input name="amount" class="form-control" id="amountt" type="number" step="0.1" placeholder="100">
           </div>
-          <button type="submit" class="btn btn-primary">Request</button>
+          <button type="submit" onclick="payWithPaystack()" class="btn btn-primary">Pay</button>
         </form>
 
       </div>
@@ -52,5 +54,107 @@
 
 
 {% block scripts %}
+<script>
+  const paymentForm = document.getElementById('topupform');
+  let email = $(".email").val()
+  let ref = $(".reference").val()
+  console.log(email + ref)
+  paymentForm.addEventListener("submit", payWithPaystack, false);
 
+  function payWithPaystack(e) {
+    e.preventDefault();
+    let amount = $("#amountt").val()
+    console.log(amount)
+    // let phonenumber = $(".phone").val()
+    // if (phonenumber.toString().length < 10 || phonenumber.toString().length !== 10 || phonenumber.toString().length > 10){
+    //   Swal.fire({text: "Phone number must be 10 digits"})
+    //   return;
+    // }
+
+    let handler = PaystackPop.setup({
+      key: 'pk_live_97173dffd73b74bdc45cdff34881c5d3a4c4cba5',
+      email: email,
+      amount: Math.floor(amount * 100),
+      currency: "GHS",
+      ref: ref,
+      metadata: {
+      'channel': "topup",
+      'real_amount': amount,
+      'db_id': "{{id}}"
+    },
+      onClose: function(){
+        swal("Transaction Closed");
+        location.reload();
+      },
+      callback: function(response){
+        location.reload()
+        // reference = response.reference
+        // let message = 'Payment complete! Reference: ' + response.reference;
+        // Swal.fire({text: "Processing your order"})
+        // Swal.showLoading();
+        // let token = $("input[name=csrfmiddlewaretoken]").val();
+        // $.ajax({
+        //   url: '/services/airtel-tigo/',
+        //   method: "POST",
+        //   data: {
+        //     phone: phonenumber,
+        //     amount: amount,
+        //     reference: reference,
+        //     csrfmiddlewaretoken: token,
+        //   },
+        //   success: function(response){
+        //     Swal.fire({text: response.status, icon:response.icon, confirmButtonText:"Okay"}).then((value) => {
+        //       location.reload()
+        //     })
+        //   }
+        // })
+      }
+    });
+
+  handler.openIframe();
+}
+
+  // $("body").on('click', '.pay-with-wallet', function(e){
+  //   let firstBtn = $(".paystack-btn")
+  //   let secondBtn = $(".pay-with-wallet")
+  //   let process = $(".process")
+  //   firstBtn.css('display', 'none')
+  //
+  //   firstBtn.prop('disabled', true)
+  //   secondBtn.prop('disabled', true)
+  //   secondBtn.text("Processing...")
+  //   process.css('display', 'block')
+  //
+  //   console.log("yes")
+  //   e.preventDefault()
+  //   console.log(email)
+  //   console.log(ref)
+  //
+  // let token = $("input[name=csrfmiddlewaretoken]").val();
+  //   let amount = $(".airtime-input").val()
+  //   let phonenumber = $(".phone").val()
+  //   if (phonenumber.toString().length < 10 || phonenumber.toString().length !== 10 || phonenumber.toString().length > 10){
+  //     Swal.fire({text: "Phone number must be 10 digits"})
+  //     return;
+  //   }
+  //
+  //   $.ajax({
+  //     method: "POST",
+  //     url: "/pay_with_wallet/",
+  //     data: {
+  //       phone: phonenumber,
+  //       amount: amount,
+  //       reference: ref,
+  //       csrfmiddlewaretoken: token,
+  //     },
+  //     success: function (response) {
+  //       console.log(response.status)
+  //       Swal.fire({text: response.status, confirmButtonText:"Okay"}).then((value) => {
+  //             location.reload()
+  //           })
+  //     },
+  //   });
+  // })
+
+</script>
 {% endblock scripts %}

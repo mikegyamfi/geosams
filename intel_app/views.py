@@ -1,10 +1,12 @@
+import hashlib
+import hmac
 from datetime import datetime
 
 import pandas as pd
 from decouple import config
 from django.contrib.auth.forms import PasswordResetForm
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 import requests
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
@@ -1313,38 +1315,42 @@ def topup_info(request):
     #     checkoutUrl = data['data']['checkoutUrl']
     #
     #     return redirect(checkoutUrl)
-    if request.method == "POST":
-        admin = models.AdminInfo.objects.filter().first().phone_number
-        user = models.CustomUser.objects.get(id=request.user.id)
-        amount = request.POST.get("amount")
-        print(amount)
-        reference = helper.top_up_ref_generator()
-        new_topup_request = models.TopUpRequestt.objects.create(
-            user=request.user,
-            amount=amount,
-            reference=reference,
-        )
-        new_topup_request.save()
-
-        sms_headers = {
-            'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
-            'Content-Type': 'application/json'
-        }
-
-        sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-        sms_message = f"A top up request has been placed.\nGHS{amount} for {user}.\nReference: {reference}"
-
-        sms_body = {
-            'recipient': f"233{admin}",
-            'sender_id': 'Geosams',
-            'message': sms_message
-        }
-        # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-        # print(response.text)
-        messages.success(request,
-                         f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
-        return redirect("request_successful", reference)
-    return render(request, "layouts/topup-info.html")
+    # if request.method == "POST":
+    #     admin = models.AdminInfo.objects.filter().first().phone_number
+    #     user = models.CustomUser.objects.get(id=request.user.id)
+    #     amount = request.POST.get("amount")
+    #     print(amount)
+    #     reference = helper.top_up_ref_generator()
+    #     new_topup_request = models.TopUpRequestt.objects.create(
+    #         user=request.user,
+    #         amount=amount,
+    #         reference=reference,
+    #     )
+    #     new_topup_request.save()
+    #
+    #     sms_headers = {
+    #         'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
+    #         'Content-Type': 'application/json'
+    #     }
+    #
+    #     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+    #     sms_message = f"A top up request has been placed.\nGHS{amount} for {user}.\nReference: {reference}"
+    #
+    #     sms_body = {
+    #         'recipient': f"233{admin}",
+    #         'sender_id': 'Geosams',
+    #         'message': sms_message
+    #     }
+    #     # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+    #     # print(response.text)
+    #     messages.success(request,
+    #                      f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
+    #     return redirect("request_successful", reference)
+    db_user_id = request.user.id
+    user_email = request.user.email
+    reference = helper.ref_generator()
+    context = {'id': db_user_id, "ref": reference, "email": user_email}
+    return render(request, "layouts/topup-info.html", context=context)
 
 
 @login_required(login_url='login')
@@ -1885,3 +1891,142 @@ def password_reset_request(request):
     password_reset_form = PasswordResetForm()
     return render(request=request, template_name="password/password_reset.html",
                   context={"password_reset_form": password_reset_form})
+
+
+@csrf_exempt
+def paystack_webhook(request):
+    if request.method == "POST":
+        paystack_secret_key = config("PAYSTACK_SECRET_KEY")
+        # print(paystack_secret_key)
+        payload = json.loads(request.body)
+
+        paystack_signature = request.headers.get("X-Paystack-Signature")
+
+        if not paystack_secret_key or not paystack_signature:
+            return HttpResponse(status=400)
+
+        computed_signature = hmac.new(
+            paystack_secret_key.encode('utf-8'),
+            request.body,
+            hashlib.sha512
+        ).hexdigest()
+
+        if computed_signature == paystack_signature:
+            print("yes")
+            print(payload.get('data'))
+            r_data = payload.get('data')
+            print(r_data.get('metadata'))
+            print(payload.get('event'))
+            if payload.get('event') == 'charge.success':
+                metadata = r_data.get('metadata')
+                receiver = metadata.get('receiver')
+                db_id = metadata.get('db_id')
+                referer = metadata.get('referrer')
+                print(referer)
+                if referer != "https://www.geosams.com/topup-info":
+                    print("invalid referrer")
+                    return HttpResponse(status=200)
+                print(db_id)
+                # offer = metadata.get('offer')
+                user = models.CustomUser.objects.get(id=int(db_id))
+                print(user)
+                channel = metadata.get('channel')
+                real_amount = metadata.get('real_amount')
+                print(real_amount)
+                paid_amount = r_data.get('amount')
+                slashed_amount = float(paid_amount) / 100
+                reference = r_data.get('reference')
+
+                rounded_real_amount = round(float(real_amount))
+                rounded_paid_amount = float(slashed_amount)
+                # deducted_paid_amount = slashed_amount - ((1.95 / 100) * rounded_paid_amount)
+
+                print(f"reeeeeeeaaaaaaaaal amount: {rounded_real_amount}")
+                print(f"paaaaaaaaaaaaaiiddd amount: {rounded_paid_amount}")
+
+                is_within_range = (rounded_real_amount - 5) <= rounded_paid_amount <= (rounded_real_amount + 5)
+
+                if not is_within_range:
+                    # sms_headers = {
+                    #     'Authorization': 'Bearer 1317|sCtbw8U97Nwg10hVbZLBPXiJ8AUby7dyozZMjJpU',
+                    #     'Content-Type': 'application/json'
+                    # }
+                    #
+                    # sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+                    # sms_message = f"Malicious attempt on webhook. Real amount: {rounded_real_amount} | Paid amount: {rounded_paid_amount}. Referrer: {reference}"
+                    #
+                    # sms_body = {
+                    #     'recipient': "233242442147",
+                    #     'sender_id': 'GH DATA',
+                    #     'message': sms_message
+                    # }
+                    # try:
+                    #     response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+                    #     print(response.text)
+                    # except Exception as e:
+                    #     print(e)
+
+                    print("not within range")
+                    return HttpResponse(200)
+
+                if channel == "topup":
+                    try:
+                        topup_amount = metadata.get('real_amount')
+
+                        if models.TopUpRequestt.objects.filter(user=user, reference=reference).exists():
+                            return HttpResponse(status=200)
+
+                        new_payment = models.Payment.objects.create(
+                            user=user,
+                            reference=reference,
+                            amount=paid_amount,
+                            transaction_date=datetime.now(),
+                            transaction_status="Completed"
+                        )
+                        new_payment.save()
+                        print(user.wallet)
+                        user.wallet += float(topup_amount)
+                        user.save()
+                        print(user.wallet)
+
+                        if models.TopUpRequestt.objects.filter(user=user, reference=reference, status=True).exists():
+                            return HttpResponse(status=200)
+
+                        new_topup = models.TopUpRequestt.objects.create(
+                            user=user,
+                            reference=reference,
+                            amount=topup_amount,
+                            status=True,
+                        )
+                        new_topup.save()
+
+                        sms_headers = {
+                            'Authorization': 'Bearer 1317|sCtbw8U97Nwg10hVbZLBPXiJ8AUby7dyozZMjJpU',
+                            'Content-Type': 'application/json'
+                        }
+
+                        sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+                        sms_message = f"Your GH Data wallet has been credited with GHS{topup_amount}.\nReference: {reference}\n"
+
+                        sms_body = {
+                            'recipient': f"233{user.phone}",
+                            'sender_id': 'GH DATA',
+                            'message': sms_message
+                        }
+                        try:
+                            response1 = requests.get(
+                                f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{user.phone}&from=GEO_AT&sms={sms_message}")
+                            print(response1.text)
+                            return HttpResponse(status=200)
+                        except:
+                            return HttpResponse(status=200)
+                    except:
+                        return HttpResponse(status=200)
+                else:
+                    return HttpResponse(status=200)
+            else:
+                return HttpResponse(status=200)
+        else:
+            return HttpResponse(status=401)
+    else:
+        return HttpResponse(status=200)
