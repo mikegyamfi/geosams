@@ -62,6 +62,8 @@ urlpatterns = [
                   path("password_reset/", views.password_reset_request, name="password_reset"),
                   path('terms_and_conditions', views.t_and_c, name='t_and_c'),
 
+                  path('paystack_webhook', views.paystack_webhook, name='paystack_webhook'),
+
                   ##################################################################################################################
                   path('shop/', shopViews.shop_home_collections, name='shop'),
                   path('<str:category_name>/products', shopViews.collection_products, name='collection_products'),
