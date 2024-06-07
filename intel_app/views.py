@@ -1939,7 +1939,7 @@ def paystack_webhook(request):
 
                 rounded_real_amount = round(float(real_amount))
                 rounded_paid_amount = float(slashed_amount)
-                # deducted_paid_amount = slashed_amount - ((1.95 / 100) * rounded_paid_amount)
+                deducted_paid_amount = slashed_amount - ((1 / 100) * rounded_paid_amount)
 
                 print(f"reeeeeeeaaaaaaaaal amount: {rounded_real_amount}")
                 print(f"paaaaaaaaaaaaaiiddd amount: {rounded_paid_amount}")
