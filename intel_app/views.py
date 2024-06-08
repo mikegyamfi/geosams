@@ -1944,7 +1944,7 @@ def paystack_webhook(request):
                 print(f"reeeeeeeaaaaaaaaal amount: {rounded_real_amount}")
                 print(f"paaaaaaaaaaaaaiiddd amount: {rounded_paid_amount}")
 
-                is_within_range = (rounded_real_amount - 5) <= rounded_paid_amount <= (rounded_real_amount + 5)
+                is_within_range = (rounded_real_amount - 20) <= rounded_paid_amount <= (rounded_real_amount + 20)
 
                 if not is_within_range:
                     # sms_headers = {
