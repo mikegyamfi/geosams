@@ -987,7 +987,7 @@ def verify_transaction(request, reference):
 def change_excel_status(request, status, to_change_to):
     transactions = models.MTNTransaction.objects.filter(
         transaction_status=status) if to_change_to != "Completed" else models.MTNTransaction.objects.filter(
-        transaction_status=status).order_by('transaction_date')[:10]
+        transaction_status=status).order_by('transaction_date')
     for transaction in transactions:
         transaction.transaction_status = to_change_to
         transaction.save()
@@ -1006,13 +1006,13 @@ def change_excel_status(request, status, to_change_to):
                 'sender_id': 'Geosams',
                 'message': sms_message
             }
-            try:
-                response1 = requests.get(
-                    f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{transaction_number}&from=GEO_AT&sms={sms_message}")
-                print(response1.text)
-            except:
-                messages.success(request, f"Transaction Completed")
-                return redirect('mtn_admin', status=status)
+            # try:
+            #     response1 = requests.get(
+            #         f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{transaction_number}&from=GEO_AT&sms={sms_message}")
+            #     print(response1.text)
+            # except:
+            messages.success(request, f"Transactions Completed")
+            return redirect('mtn_admin', status=status)
         else:
             messages.success(request, f"Status changed from {status} to {to_change_to}")
             return redirect("mtn_admin", status=status)
