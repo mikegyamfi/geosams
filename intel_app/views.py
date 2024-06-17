@@ -992,25 +992,25 @@ def change_excel_status(request, status, to_change_to):
         transaction.transaction_status = to_change_to
         transaction.save()
         if to_change_to == "Completed":
-            transaction_number = transaction.user.phone
-            sms_headers = {
-                'Authorization': 'Bearer 1050|VDqcCUHwCBEbjcMk32cbdOhCFlavpDhy6vfgM4jU',
-                'Content-Type': 'application/json'
-            }
-
-            sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-            sms_message = f"Your MTN transaction has been completed. {transaction.bundle_number} has been credited with {transaction.offer}.\nTransaction Reference: {transaction.reference}"
-
-            sms_body = {
-                'recipient': f"233{transaction_number}",
-                'sender_id': 'Geosams',
-                'message': sms_message
-            }
-            # try:
-            #     response1 = requests.get(
-            #         f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{transaction_number}&from=GEO_AT&sms={sms_message}")
-            #     print(response1.text)
-            # except:
+            # transaction_number = transaction.user.phone
+            # sms_headers = {
+            #     'Authorization': 'Bearer 1050|VDqcCUHwCBEbjcMk32cbdOhCFlavpDhy6vfgM4jU',
+            #     'Content-Type': 'application/json'
+            # }
+            #
+            # sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+            # sms_message = f"Your MTN transaction has been completed. {transaction.bundle_number} has been credited with {transaction.offer}.\nTransaction Reference: {transaction.reference}"
+            #
+            # sms_body = {
+            #     'recipient': f"233{transaction_number}",
+            #     'sender_id': 'Geosams',
+            #     'message': sms_message
+            # }
+            # # try:
+            # #     response1 = requests.get(
+            # #         f"https://sms.arkesel.com/sms/api?action=send-sms&api_key=UnBzemdvanJyUGxhTlJzaVVQaHk&to=0{transaction_number}&from=GEO_AT&sms={sms_message}")
+            # #     print(response1.text)
+            # # except:
             messages.success(request, f"Transactions Completed")
             return redirect('mtn_admin', status=status)
         else:
