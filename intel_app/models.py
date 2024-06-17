@@ -53,6 +53,7 @@ class AdminInfo(models.Model):
     afa_super_agent_price = models.FloatField(null=True, blank=True)
     sign_up_active = models.BooleanField(default=False)
     agent_price = models.FloatField(null=True, blank=True)
+    payment_active = models.BooleanField(default=True)
 
 
 class IShareBundleTransaction(models.Model):

@@ -1315,41 +1315,44 @@ def topup_info(request):
     #     checkoutUrl = data['data']['checkoutUrl']
     #
     #     return redirect(checkoutUrl)
-    # if request.method == "POST":
-    #     admin = models.AdminInfo.objects.filter().first().phone_number
-    #     user = models.CustomUser.objects.get(id=request.user.id)
-    #     amount = request.POST.get("amount")
-    #     print(amount)
-    #     reference = helper.top_up_ref_generator()
-    #     new_topup_request = models.TopUpRequestt.objects.create(
-    #         user=request.user,
-    #         amount=amount,
-    #         reference=reference,
-    #     )
-    #     new_topup_request.save()
-    #
-    #     sms_headers = {
-    #         'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
-    #         'Content-Type': 'application/json'
-    #     }
-    #
-    #     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-    #     sms_message = f"A top up request has been placed.\nGHS{amount} for {user}.\nReference: {reference}"
-    #
-    #     sms_body = {
-    #         'recipient': f"233{admin}",
-    #         'sender_id': 'Geosams',
-    #         'message': sms_message
-    #     }
-    #     # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
-    #     # print(response.text)
-    #     messages.success(request,
-    #                      f"Your Request has been sent successfully. Kindly go on to pay to {admin} and use the reference stated as reference. Reference: {reference}")
-    #     return redirect("request_successful", reference)
+    payment_active = models.AdminInfo.objects.filter().first().payment_active
+    if not payment_active:
+        if request.method == "POST":
+            admin = models.AdminInfo.objects.filter().first().phone_number
+            user = models.CustomUser.objects.get(id=request.user.id)
+            amount = request.POST.get("amount")
+            print(amount)
+            reference = helper.top_up_ref_generator()
+            new_topup_request = models.TopUpRequestt.objects.create(
+                user=request.user,
+                amount=amount,
+                reference=reference,
+            )
+            new_topup_request.save()
+
+            sms_headers = {
+                'Authorization': 'Bearer 1136|LwSl79qyzTZ9kbcf9SpGGl1ThsY0Ujf7tcMxvPze',
+                'Content-Type': 'application/json'
+            }
+
+            sms_url = 'https://webapp.usmsgh.com/api/sms/send'
+            sms_message = f"A top up request has been placed.\nGHS{amount} for {user}.\nReference: {reference}"
+
+            sms_body = {
+                'recipient': f"233{admin}",
+                'sender_id': 'Geosams',
+                'message': sms_message
+            }
+            # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
+            # print(response.text)
+            messages.success(request,
+                             f"Your Request has been sent successfully. Make payment now")
+            return redirect("request_successful", reference)
     db_user_id = request.user.id
     user_email = request.user.email
     reference = helper.ref_generator()
-    context = {'id': db_user_id, "ref": reference, "email": user_email}
+    payment_active = models.AdminInfo.objects.filter().first().payment_active
+    context = {'id': db_user_id, "ref": reference, "email": user_email, "payment_active": payment_active}
     return render(request, "layouts/topup-info.html", context=context)
 
 
