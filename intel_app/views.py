@@ -2061,7 +2061,7 @@ def paystack_webhook(request):
                         user=user,
                         reference=reference,
                         amount=paid_amount,
-                        transaction_date=datetime.now(),
+                        transaction_date=datetime.datetime.now(),
                         transaction_status="Completed"
                     )
                     new_payment.save()
