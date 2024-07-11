@@ -65,6 +65,7 @@
               {% endif %}
                 {% if request.user.is_superuser %}
                 <a class="dropdown-item" href="{% url 'mtn_admin' status='Pending' %}">MTN Admin</a>
+              <a class="dropdown-item" href="{% url 'voda_admin' status='Pending' %}">Telecel Admin</a>
               <a class="dropdown-item" href="{% url 'bt_admin' %}">Big Time Admin</a>
               <a class="dropdown-item" href="{% url 'afa_admin' %}">AFA Admin</a>
               <a class="dropdown-item" href="{% url 'admin_orders' %}">Shop Orders</a>

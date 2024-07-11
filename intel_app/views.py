@@ -921,12 +921,90 @@ def voda_history(request):
     return render(request, "layouts/history.html", context=context)
 
 
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+import csv
+from io import StringIO
+import datetime
+from . import models
+
 @login_required(login_url='login')
-def admin_voda_history(request):
+def admin_voda_history(request, status):
     if request.user.is_staff and request.user.is_superuser:
-        all_txns = models.VodafoneTransaction.objects.filter().order_by('-transaction_date')[:1000]
-        context = {'txns': all_txns}
+        if request.method == "POST":
+            uploaded_file = request.FILES.get('file')
+            if not uploaded_file:
+                messages.error(request, "No CSV file found")
+                return redirect('voda_admin', status=status)
+
+            # Read the uploaded CSV file into memory
+            csv_buffer = StringIO(uploaded_file.read().decode('utf-8'))
+            reader = csv.reader(csv_buffer)
+
+            # Skip the header if present
+            header = next(reader)
+
+            # Load the existing data from the CSV file into a list
+            csv_data = list(reader)
+
+            # Query your Django model
+            queryset = models.VodafoneTransaction.objects.filter(transaction_status="Pending")
+
+            # Assuming we have identified the recipient and data column indices
+            recipient_col_index = 0  # Adjust based on actual index in the CSV
+            data_col_index = 1  # Adjust based on actual index in the CSV
+
+            # Update the CSV data with the queryset data
+            for record in queryset:
+                recipient_value = f"0{record.bundle_number}"  # Ensure it's a string to preserve formatting
+                data_value = record.offer  # Adjust based on actual field type
+                cleaned_data_value = float(data_value.replace('MB', ''))
+                data_value_gb = round(float(cleaned_data_value) / 1000, 2)
+
+                # Append the new data to the CSV data list
+                csv_data.append([recipient_value, data_value_gb])
+
+                # Update the record status, if necessary
+                record.transaction_status = "Processing"
+                record.save()
+
+            # Create a new CSV buffer to write the updated data
+            csv_output = StringIO()
+            writer = csv.writer(csv_output)
+
+            # Write the header if present
+            writer.writerow(header)
+
+            # Write the updated data to the CSV buffer
+            writer.writerows(csv_data)
+
+            # Prepare the response with the modified CSV file
+            response = HttpResponse(csv_output.getvalue(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename={}.csv'.format(
+                datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+
+            return response
+
+        all_txns = models.VodafoneTransaction.objects.filter(transaction_status=status).order_by('-transaction_date')[:800]
+        context = {'txns': all_txns, 'status': status}
         return render(request, "layouts/services/voda_admin.html", context=context)
+    else:
+        messages.error(request, "Access Denied")
+        return redirect('voda_admin', status=status)
+
+
+
+@login_required(login_url='login')
+def voda_change_excel_status(request, status, to_change_to):
+    transactions = models.VodafoneTransaction.objects.filter(
+        transaction_status=status) if to_change_to != "Completed" else models.VodafoneTransaction.objects.filter(
+        transaction_status=status).order_by('transaction_date')
+    for transaction in transactions:
+        transaction.transaction_status = to_change_to
+        transaction.save()
+    messages.success(request, f"Status changed from {status} to {to_change_to}")
+    return redirect("voda_admin", status=status)
 
 
 @login_required(login_url='login')

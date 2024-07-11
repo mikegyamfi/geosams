@@ -24,7 +24,8 @@ urlpatterns = [
 
                   path('services/voda/', views.voda, name='voda'),
                   path('history/voda', views.voda_history, name="voda-history"),
-                  path('voda_admin', views.admin_voda_history, name='voda_admin'),
+                  path('voda_admin/<str:status>', views.admin_voda_history, name='voda_admin'),
+                  path('voda_excel_status/<str:status>/<str:to_change_to>', views.voda_change_excel_status, name='voda_excel_status'),
                   path('voda_mark_as_sent/<int:pk>', views.voda_mark_as_sent, name='voda_mark_as_sent'),
                   path('voda_pay_with_wallet/', views.voda_pay_with_wallet, name='voda_pay_with_wallet'),
 
