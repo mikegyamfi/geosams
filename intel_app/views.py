@@ -890,12 +890,24 @@ def wallet_history(request):
 
 @login_required(login_url='login')
 def api_wallet_history(request):
-    user_wallet_transactions = models.ApiWalletTransaction.objects.filter(user=request.user).order_by(
+    user_wallet_transactions = models.ApiWalletTransaction.objects.filter(user=request.user,
+                                                                          transaction_channel="MTN").order_by(
         'transaction_date').reverse()[:500]
     header = "API Wallet Transactions"
     net = "api_wallet"
     context = {'txns': user_wallet_transactions, "header": header, "net": net}
     return render(request, "layouts/api_wallet_history.html", context=context)
+
+
+@login_required(login_url='login')
+def telecel_api_wallet_history(request):
+    user_wallet_transactions = models.ApiWalletTransaction.objects.filter(user=request.user,
+                                                                          transaction_channel="Telecel").order_by(
+        'transaction_date').reverse()[:500]
+    header = "Telecel API Wallet Transactions"
+    net = "telecel_api_wallet"
+    context = {'txns': user_wallet_transactions, "header": header, "net": net}
+    return render(request, "layouts/voda_api_wallet_history.html", context=context)
 
 
 @login_required(login_url='login')
@@ -928,6 +940,7 @@ import csv
 from io import StringIO
 import datetime
 from . import models
+
 
 @login_required(login_url='login')
 def admin_voda_history(request, status):
@@ -986,13 +999,13 @@ def admin_voda_history(request, status):
 
             return response
 
-        all_txns = models.VodafoneTransaction.objects.filter(transaction_status=status).order_by('-transaction_date')[:800]
+        all_txns = models.VodafoneTransaction.objects.filter(transaction_status=status).order_by('-transaction_date')[
+                   :800]
         context = {'txns': all_txns, 'status': status}
         return render(request, "layouts/services/voda_admin.html", context=context)
     else:
         messages.error(request, "Access Denied")
         return redirect('voda_admin', status=status)
-
 
 
 @login_required(login_url='login')
@@ -1869,8 +1882,9 @@ def initiate_mtn_transaction(request):
 
         try:
             api_user = models.MTNAPIUsers.objects.get(key=api_key)
-            print(api_key)
-        except:
+            print(api_user.key)
+        except Exception as e:
+            print(e)
             return JsonResponse({'message': 'Invalid API Key'}, status=401)
 
         try:
@@ -1896,6 +1910,7 @@ def initiate_mtn_transaction(request):
                 transaction_type="Debit",
                 transaction_amount=float(bundle_price),
                 new_balance=float(api_user.wallet_balance),
+                transaction_channel="MTN"
             )
             new_history.save()
 
@@ -1911,6 +1926,82 @@ def initiate_mtn_transaction(request):
 
             new_api_history = models.APIUsersHistory.objects.create(
                 mtn_transaction=new_mtn_transaction,
+                api_user=api_user
+            )
+
+            new_api_history.save()
+
+            print("saved")
+
+            return JsonResponse({'status': "Your transaction will be completed shortly"}, status=200)
+        except models.MTNAPIUsers.DoesNotExist:
+            return JsonResponse(data={"message": "Invalid API Key"}, status=401)
+
+
+@csrf_exempt
+def initiate_telecel_transaction(request):
+    if request.method == "POST":
+        print(request.POST)
+        receiver = request.POST.get("receiver")
+        bundle_volume = request.POST.get("bundle_volume")
+        reference = request.POST.get("reference")
+
+        if not receiver or not bundle_volume or not reference:
+            return JsonResponse({'message': 'Missing Parameters'}, status=400)
+
+        print(receiver)
+        print(bundle_volume)
+
+        api_key = request.headers.get("api-key")
+        if not api_key:
+            return JsonResponse({'message': 'No Api Key Found'}, status=401)
+
+        try:
+            api_user = models.MTNAPIUsers.objects.get(key=api_key)
+            print(api_user.key)
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message': 'Invalid API Key'}, status=401)
+
+        try:
+            bundle_price = models.APITelecelBundlePrice.objects.get(bundle_volume=bundle_volume).price
+        except models.APITelecelBundlePrice.DoesNotExist:
+            return JsonResponse({'message': 'Bundle Volume not found'}, status=400)
+
+        try:
+            api_user = models.MTNAPIUsers.objects.get(key=api_key)
+            wallet_balance = api_user.wallet_balance
+            print(wallet_balance)
+
+            if wallet_balance < float(bundle_price):
+                return JsonResponse({'message': 'Insufficient balance'}, status=400)
+
+            api_user.wallet_balance -= float(bundle_price)
+            api_user.save()
+
+            print(api_user.user)
+
+            new_history = models.ApiWalletTransaction.objects.create(
+                user=api_user.user,
+                transaction_type="Debit",
+                transaction_amount=float(bundle_price),
+                new_balance=float(api_user.wallet_balance),
+                transaction_channel="Telecel"
+            )
+            new_history.save()
+
+            new_telecel_transaction = models.VodafoneTransaction.objects.create(
+                user=api_user.user,
+                bundle_number=receiver,
+                offer=f"{bundle_volume}MB",
+                reference=reference,
+            )
+            new_telecel_transaction.save()
+
+            print("saved")
+
+            new_api_history = models.TelecelAPIUsersHistory.objects.create(
+                telecel_transaction=new_telecel_transaction,
                 api_user=api_user
             )
 

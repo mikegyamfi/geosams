@@ -102,6 +102,8 @@ admin.site.register(models.SuperAgentVodaBundlePrice)
 admin.site.register(models.APIMTNBundlePrice)
 admin.site.register(models.MTNAPIUsers)
 admin.site.register(models.APIUsersHistory)
+admin.site.register(models.APITelecelBundlePrice)
+admin.site.register(models.TelecelAPIUsersHistory)
 
 #########################################################################
 admin.site.register(models.Category)

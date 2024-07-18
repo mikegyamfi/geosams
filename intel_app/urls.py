@@ -15,6 +15,7 @@ urlpatterns = [
                   path('history/airtel-tigo', views.history, name='history'),
                   path('history/wallet', views.wallet_history, name='wallet_history'),
                   path('history/api_wallet', views.api_wallet_history, name='api_wallet_history'),
+                  path('history/telecel_api_wallet', views.telecel_api_wallet_history, name='telecel_api_wallet_history'),
                   path('services/big_time/', views.big_time, name='big_time'),
                   path('services/afa/', views.afa_registration, name='afa'),
                   path('history/mtn', views.mtn_history, name="mtn-history"),
@@ -25,7 +26,8 @@ urlpatterns = [
                   path('services/voda/', views.voda, name='voda'),
                   path('history/voda', views.voda_history, name="voda-history"),
                   path('voda_admin/<str:status>', views.admin_voda_history, name='voda_admin'),
-                  path('voda_excel_status/<str:status>/<str:to_change_to>', views.voda_change_excel_status, name='voda_excel_status'),
+                  path('voda_excel_status/<str:status>/<str:to_change_to>', views.voda_change_excel_status,
+                       name='voda_excel_status'),
                   path('voda_mark_as_sent/<int:pk>', views.voda_mark_as_sent, name='voda_mark_as_sent'),
                   path('voda_pay_with_wallet/', views.voda_pay_with_wallet, name='voda_pay_with_wallet'),
 
@@ -56,6 +58,8 @@ urlpatterns = [
                   path('credit/<str:reference>', views.credit_user_from_list, name='credit'),
 
                   path('api/initiate_mtn_transaction', views.initiate_mtn_transaction, name='mtn_transaction'),
+                  path('api/initiate_telecel_transaction', views.initiate_telecel_transaction,
+                       name='telecel_transaction'),
 
                   path('login', authViews.login_page, name='login'),
                   path('signup', authViews.sign_up, name='signup'),
