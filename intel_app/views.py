@@ -77,32 +77,26 @@ def register_as_agent(request):
 
 @login_required(login_url='login')
 def register_as_agent_wallet(request):
-    if request.user.data_bundle_access:
-        agent_price = models.AdminInfo.objects.filter().first().agent_price
-        user = models.CustomUser.objects.get(id=request.user.id)
-        if user.status == "Agent" or user.status == "Super Agent":
-            return JsonResponse({"status": "User is already an agent"})
-        if float(user.wallet) < float(agent_price):
-            return JsonResponse({"status": "Insufficient Balance", "icon": "error"})
-        user.wallet -= float(agent_price)
-        user.status = "Agent"
-        user.save()
-        new_registration = models.AgentRegistration.objects.create(
-            amount=agent_price,
-            user=user
-        )
-        new_registration.save()
-        return JsonResponse({"status": "Registration Successful"})
-    else:
-        return redirect("shop_home")
+    agent_price = models.AdminInfo.objects.filter().first().agent_price
+    user = models.CustomUser.objects.get(id=request.user.id)
+    if user.status == "Agent" or user.status == "Super Agent":
+        return JsonResponse({"status": "User is already an agent"})
+    if float(user.wallet) < float(agent_price):
+        return JsonResponse({"status": "Insufficient Balance", "icon": "error"})
+    user.wallet -= float(agent_price)
+    user.status = "Agent"
+    user.save()
+    new_registration = models.AgentRegistration.objects.create(
+        amount=agent_price,
+        user=user
+    )
+    new_registration.save()
+    return JsonResponse({"status": "Registration Successful"})
 
 
 @login_required(login_url='login')
 def services(request):
-    if request.user.data_bundle_access:
-        return render(request, "layouts/services.html")
-    else:
-        return redirect("shop_home")
+    return render(request, "layouts/services.html")
 
 
 def t_and_c(request):
@@ -1017,7 +1011,6 @@ def afa_history(request):
     net = "afa"
     context = {'txns': user_transactions, "header": header, "net": net}
     return render(request, "layouts/afa_history.html", context=context)
-
 
 
 def verify_transaction(request, reference):
