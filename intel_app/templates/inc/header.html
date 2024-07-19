@@ -23,14 +23,9 @@
           <li class="nav-item">
             <a href="{% url 'topup-info' %}" class="nav-link">Top Up</a>
           </li>
-          {% if request.user.data_bundle_access %}
-                    <li class="nav-item">
-            <a href="{% url 'home' %}" class="nav-link">Data Services</a>
-          </li>
           <li class="nav-item">
             <a href="{% url 'history' %}" class="nav-link">Dashboard</a>
           </li>
-          {% endif %}
           {% if request.user.is_superuser %}
           <li class="nav-item">
             <a href="{% url 'topup_list' %}" class="nav-link">Requests</a>

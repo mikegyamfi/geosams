@@ -52,11 +52,8 @@ def login_page(request):
             user = authenticate(request, username=name, password=password)
             if user:
                 login(request, user)
-                if user.data_bundle_access:
-                    messages.success(request, 'Log in Successful')
-                    return redirect('home')
-                else:
-                    return redirect("shop_home")
+                messages.success(request, 'Log in Successful')
+                return redirect('home')
             else:
                 messages.error(request, 'Invalid username or password')
                 return redirect('login')
