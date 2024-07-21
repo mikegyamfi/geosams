@@ -29,7 +29,7 @@ class CustomUserAdmin(ExportActionMixin, UserAdmin):
 
 class IShareBundleTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
-    search_fields = ['reference', 'bundle_number']
+    search_fields = ['user__username', 'reference', 'bundle_number']
 
 
 class MTNTransactionAdmin(ExportActionMixin, admin.ModelAdmin):
@@ -40,12 +40,12 @@ class MTNTransactionAdmin(ExportActionMixin, admin.ModelAdmin):
 class WalletTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'transaction_type', 'transaction_amount', 'transaction_use', 'new_balance',
                     'transaction_date']
-    search_fields = ['user', 'transaction_type']
+    search_fields = ['user__username', 'transaction_type']
 
 
 class APIWalletTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'transaction_type', 'transaction_amount', 'new_balance', 'transaction_date']
-    search_fields = ['user', 'transaction_type']
+    search_fields = ['user__username', 'transaction_type']
 
 
 class PaymentAdmin(admin.ModelAdmin):
@@ -62,7 +62,7 @@ class AgentRegAdmin(admin.ModelAdmin):
 
 class VodafoneTransactionAdmin(admin.ModelAdmin):
     list_display = ['user', 'bundle_number', 'offer', 'reference', 'transaction_status', 'transaction_date']
-    search_fields = ['reference', 'bundle_number']
+    search_fields = ['user__username', 'reference', 'bundle_number']
 
 
 class ProductImageInline(admin.TabularInline):  # or admin.StackedInline
