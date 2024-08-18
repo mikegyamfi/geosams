@@ -75,6 +75,7 @@
                         <th scope="col">Offer</th>
                         <th scope="col">Reference</th>
                         <th scope="col">Status</th>
+                        <th scope="col">Action</th>
                         <th scope="col">Date</th>
                     </tr>
                     </thead>
@@ -89,7 +90,11 @@
                             {% else %}
                             <td><span class="badge badge-pill badge-danger me-1">{{txn.transaction_status}}</span></td>
                             {% endif %}
-                            
+                            {% if net == "mtn" and txn.transaction_status == "Pending"%}
+                                <td><a href="{% url 'cancel_mtn_transaction' pk=txn.id %}" class="badge badge-pill badge-danger me-1">Cancel</a></td>
+                                {% else %}
+                                <td><a disabled="" class="badge badge-pill badge-light me-1">Cancel</a></td>
+                            {% endif %}
                             <td>{{txn.transaction_date}}</td>
                         </tr>
                     {% endfor %}    

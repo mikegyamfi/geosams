@@ -102,6 +102,7 @@ class SuperAgentIshareBundlePrice(models.Model):
 class MTNTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     bundle_number = models.BigIntegerField(null=False, blank=False)
+    amount = models.FloatField(null=True, blank=True)
     offer = models.CharField(max_length=250, null=False, blank=False)
     reference = models.CharField(max_length=20, null=False, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
@@ -359,6 +360,14 @@ class ApiWalletTransaction(models.Model):
     transaction_date = models.DateTimeField(auto_now_add=True)
     transaction_amount = models.FloatField(null=False)
     new_balance = models.FloatField(null=True)
+
+
+class Announcement(models.Model):
+    message = models.CharField(max_length=500, null=True, blank=True)
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.message
 
 
 ####################################################################################

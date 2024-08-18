@@ -25,6 +25,15 @@ from django_ratelimit.decorators import ratelimit
 @login_required(login_url='login')
 # Create your views here.
 def home(request):
+    if models.Announcement.objects.filter(active=True).exists():
+        announcement = models.Announcement.objects.filter(active=True).first()
+        messages.info(request, announcement.message)
+        agent_price = models.AdminInfo.objects.filter().first().agent_price
+        context = {
+            "announcement": announcement.message if announcement else None,
+            "agent_price": agent_price,
+        }
+        return render(request, "layouts/index.html", context=context)
     agent_price = models.AdminInfo.objects.filter().first().agent_price
     context = {
         "agent_price": agent_price,
@@ -429,6 +438,7 @@ def mtn_pay_with_wallet(request):
             bundle_number=phone_number,
             offer=f"{bundle}MB",
             reference=reference,
+            amount=amount
         )
         new_mtn_transaction.save()
         user.wallet -= float(amount)
@@ -2145,7 +2155,7 @@ def paystack_webhook(request):
                     }
 
                     sms_url = 'https://webapp.usmsgh.com/api/sms/send'
-                    sms_message = f"Your GH Data wallet has been credited with GHS{topup_amount}.\nReference: {reference}\n"
+                    sms_message = f"Your Geosams wallet has been credited with GHS{topup_amount}.\nReference: {reference}\n"
 
                     sms_body = {
                         'recipient': f"233{user.phone}",
@@ -2167,3 +2177,26 @@ def paystack_webhook(request):
             return HttpResponse(status=401)
     else:
         return HttpResponse(status=200)
+
+
+def cancel_mtn_transaction(request, pk):
+    user = models.CustomUser.objects.get(id=request.user.id)
+    transaction_to_be_canceled = models.MTNTransaction.objects.filter(id=pk, user=user, transaction_status="Pending").first()
+
+    try:
+        amount_to_refund = transaction_to_be_canceled.amount
+        transaction_to_be_canceled.delete()
+        user.wallet += float(amount_to_refund)
+        user.save()
+
+    except Exception as e:
+        print(e)
+        messages.info(request, "Unable to cancel transaction")
+        return redirect('mtn-history')
+
+    messages.success(request, "Transaction has been cancelled and money refunded into wallet")
+
+    return redirect('mtn-history')
+
+
+

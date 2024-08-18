@@ -105,6 +105,8 @@ admin.site.register(models.APIUsersHistory)
 admin.site.register(models.APITelecelBundlePrice)
 admin.site.register(models.TelecelAPIUsersHistory)
 
+admin.site.register(models.Announcement)
+
 #########################################################################
 admin.site.register(models.Category)
 admin.site.register(models.Product, ProductAdmin)

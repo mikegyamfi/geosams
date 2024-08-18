@@ -1,177 +1,178 @@
 {% extends 'base.html' %}
 {% load static %}
 
-  {% block content %}
+{% block content %}
+<header>
+  {% include 'inc/header.html' %}
 
-  <header>
-    {% include 'inc/header.html' %}
-    <div class="page-banner home-banner">
-      <div class="container h-100">
-        <div class="row align-items-center h-100">
-          <div class="col-lg-6 py-3 wow fadeInUp">
-            <h3 style="color: #ffffff" class="mb-4">Explore Unbeatable Bundles and Top-notch Tech at Geosams Shop</h3>
-            <p class="text-lg mb-5">We're here to make your internet experience the best.</p>
-            <a href="{% url 'services' %}" class="btn btn-outline-primary mb-3">Explore</a>
-            <a href="https://chat.whatsapp.com/DRLT3lPlKUc0FDEBaGfjcU" class="btn btn-primary mb-3">Join Our Community</a>
-          </div>
-          <div class="col-lg-6 py-3 wow zoomIn">
-            {% if request.user.is_authenticated and request.user.status == "User" %}
-                <div class="border-0 rounded-left rounded-top shadow p-3" style="background-image: linear-gradient(to right top, #ffffff, #ffffff, #205B6E);">
-                  <span class="text-primary">Hi {{request.user.first_name}},<br>Did you know you could become an agent?</span>
-                  <p class="text-primary">Become an agent for just:</p>
-                  <h3 class="text-primary">GH₵ {{agent_price}}</h3>
-<!--                  <a class="btn btn-outline-primary my-2" href="{% url 'register_agent' %}">Pay Online</a>-->
-                  <button class="btn btn-outline-primary my-2" onclick="register_wallet()">Pay with Wallet</button>
+  <!-- Announcement Crawler -->
+
+
+  <div class="page-banner home-banner">
+    <div class="container h-100">
+      <div class="row align-items-center h-100">
+            {% if announcement %}
+                <div class="mt-lg-5">
+  <div class="announcement-crawler mt-lg-5">
+    <button id="close-crawler" style="float: right; background: white; border: teal; color: white;"><i class="fa fa-times text-danger"></i></button>
+    <marquee behavior="scroll" direction="left">
+      <span>{{ announcement }}</span>
+    </marquee>
+  </div>
                 </div>
-            {% else %}
-            <div class="img-place">
-              <lottie-player src="https://lottie.host/ce9ded54-c04c-4149-bdc4-a597d039d6d7/fGPu293yal.json"  background="transparent"  speed="1"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player>
+  {% endif %}
+        <div class="col-lg-6 py-3 wow fadeInUp">
+          <h3 style="color: #ffffff" class="mb-4">Explore Unbeatable Bundles and Top-notch Tech at Geosams Shop</h3>
+          <p class="text-lg mb-5">We're here to make your internet experience the best.</p>
+          <a href="{% url 'services' %}" class="btn btn-outline-primary mb-3">Explore</a>
+          <a href="https://chat.whatsapp.com/DRLT3lPlKUc0FDEBaGfjcU" class="btn btn-primary mb-3">Join Our Community</a>
+        </div>
+        <div class="col-lg-6 py-3 wow zoomIn">
+          {% if request.user.is_authenticated and request.user.status == "User" %}
+            <div class="border-0 rounded-left rounded-top shadow p-3" style="background-image: linear-gradient(to right top, #ffffff, #ffffff, #205B6E);">
+              <span class="text-primary">Hi {{request.user.first_name}},<br>Did you know you could become an agent?</span>
+              <p class="text-primary">Become an agent for just:</p>
+              <h3 class="text-primary">GH₵ {{agent_price}}</h3>
+              <button class="btn btn-outline-primary my-2" onclick="register_wallet()">Pay with Wallet</button>
             </div>
-            {% endif %}
+          {% else %}
+          <div class="img-place">
+            <lottie-player src="https://lottie.host/ce9ded54-c04c-4149-bdc4-a597d039d6d7/fGPu293yal.json" background="transparent" speed="1" style="width: 300px; height: 300px;" loop autoplay></lottie-player>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="page-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 py-3 wow fadeInLeft">
+          <h2 class="title-section">We're <span class="marked">ready to</span> Serve you with best</h2>
+          <div class="divider"></div>
+          <p class="mb-5">Experience Excellence in <span class="marked">Tech</span>commerce: Our Exceptional Services Guarantee Customer Satisfaction. Try Us Today!.</p>
+          <a href="#" class="btn btn-outline-primary ml-2"><i class="fa fa-shopping-cart"></i> Go to Shop</a>
+        </div>
+        <div class="col-lg-6 py-3 wow zoomIn">
+          <div class="img-place text-center">
+            <lottie-player src="https://lottie.host/51b1c1de-061a-46d1-8296-b3e59658ef9b/hDuq0DQHV1.json" background="transparent" speed="1" style="width: 300px; height: 300px;" loop autoplay></lottie-player>
           </div>
         </div>
       </div>
     </div>
-  </header>  
-  
+  </div>
 
-  <main>
+  <div class="my-2 mx-auto" style="width: 15%; height: 5px; background-color: #205B6E"></div>
 
-        <div class="page-section">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-6 py-3 wow fadeInLeft">
-            <h2 class="title-section">We're <span class="marked">ready to</span> Serve you with best</h2>
-            <div class="divider"></div>
-            <p class="mb-5">Experience Excellence in <span class="marked">Tech</span>commerce: Our Exceptional Services Guarantee Customer Satisfaction. Try Us Today!.</p>
-            <a href="#" class="btn btn-outline-primary ml-2"><i class="fa fa-shopping-cart"></i> Go to Shop</a>
-          </div>
-          <div class="col-lg-6 py-3 wow zoomIn">
-            <div class="img-place text-center">
-              <lottie-player src="https://lottie.host/51b1c1de-061a-46d1-8296-b3e59658ef9b/hDuq0DQHV1.json"  background="transparent"  speed="1"  style="width: 300px; height: 300px;"  loop  autoplay></lottie-player>
+  <div class="page-section">
+    <div class="container">
+      <div class="text-center wow fadeInUp">
+        <div class="subhead">Why Choose Us</div>
+        <h2 class="title-section">Your <span class="marked">Satisfaction</span> is Our Priority</h2>
+        <div class="divider mx-auto"></div>
+      </div>
+
+      <div class="row mt-5 text-center">
+        <div class="col-lg-4 py-3 wow fadeInUp card shadow border-left">
+          <i style="color: #205B6E" class="fa-solid fa-fast-forward fa-2x"></i>
+          <h5 style="color: #205B6E">Swift Delivery</h5>
+          <p>Our services provided are with top performance.</p>
+        </div>
+        <div class="col-lg-4 py-3 wow fadeInDown">
+          <i style="color: #205B6E" class="fa-solid fa-dollar-sign fa-2x"></i>
+          <h5 style="color: #205B6E">Friendly Prices</h5>
+          <p>Our Prices? They are the best you will find out there.</p>
+        </div>
+        <div class="col-lg-4 py-3 wow fadeInRight card shadow border-right">
+          <i style="color: #205B6E" class="fa-solid fa-headset fa-2x"></i>
+          <h5 style="color: #205B6E">24/7 Response</h5>
+          <p>We're always with you. Your concerns are not ignored.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="my-2 mx-auto" style="width: 15%; height: 5px; background-color: #205B6E"></div>
+
+  <div class="page-section">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6 py-3 wow fadeInUp">
+          <h2 class="title-section">Get in Touch</h2>
+          <div class="divider"></div>
+          <p>We'll get to you shortly.<br> We look forward to hearing from you!</p>
+
+          <ul class="contact-list">
+            <li>
+              <div class="icon"><span class="mai-mail"></span></div>
+              <div class="content"><a href="mailto:geosamscustomercare@gmail.com">geosamscustomercare@gmail.com</a></div>
+            </li>
+            <li>
+              <div class="icon"><span class="mai-phone-portrait"></span></div>
+              <div class="content"><a href="tel:+233549914001">+233 59 665 6181</a></div>
+            </li>
+          </ul>
+        </div>
+        <div class="col-lg-6 py-3 wow fadeInUp">
+          <div class="subhead">Contact Us</div>
+          <h2 class="title-section">Drop Us a Line</h2>
+          <div class="divider"></div>
+
+          <form action="#">
+            <div class="py-2">
+              <input type="text" class="form-control" placeholder="Full name">
             </div>
-          </div>
+            <div class="py-2">
+              <input type="text" class="form-control" placeholder="Email">
+            </div>
+            <div class="py-2">
+              <textarea rows="6" class="form-control" placeholder="Enter message"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary rounded-pill mt-4">Send Message</button>
+          </form>
         </div>
-      </div> <!-- .container -->
-    </div> <!-- .page-section -->
-
-            <div class="my-2 mx-auto" style="width: 15%; height: 5px; background-color: #205B6E">
-
+      </div>
     </div>
-  
-          <div class="page-section">
-            <div class="container">
-              <div class="text-center wow fadeInUp">
-                <div class="subhead">Why Choose Us</div>
-                <h2 class="title-section">Your <span class="marked">Satisfaction</span> is Our Priority</h2>
-                <div class="divider mx-auto"></div>
-              </div>
-        
-              <div class="row mt-5 text-center">
-                <div class="col-lg-4 py-3 wow fadeInUp card shadow border-left">
-                  <i style="color: #205B6E" class="fa-solid fa-fast-forward fa-2x"></i>
-                  <h5 style="color: #205B6E">Swift Delivery</h5>
-                  <p>Our services provided are with top performance.</p>
-                </div>
-                <div class="col-lg-4 py-3 wow fadeInDown">
-                  <i style="color: #205B6E" class="fa-solid fa-dollar-sign fa-2x"></i>
-                  <h5 style="color: #205B6E">Friendly Prices</h5>
-                  <p>Our Prices? They are the best you will find out there.</p>
-                </div>
-                <div class="col-lg-4 py-3 wow fadeInRight card shadow border-right">
-                  <i style="color: #205B6E" class="fa-solid fa-headset fa-2x"></i>
-                  <h5 style="color: #205B6E">24/7 Response</h5>
-                  <p>We're always with you. Your concerns are not ignored.</p>
-                </div>
-              </div>
-            </div> <!-- .container -->
-          </div> <!-- .page-section -->
+  </div>
+</main>
 
-    <div class="my-2 mx-auto" style="width: 15%; height: 5px; background-color: #205B6E">
-
-    </div>
-  
-
-
-  
-    <div class="page-section">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-lg-6 py-3 wow fadeInUp">
-            <h2 class="title-section">Get in Touch</h2>
-            <div class="divider"></div>
-            <p>We'll get to you shortly.<br> We look forward to hearing from you!</p>
-  
-            <ul class="contact-list">
-              <li>
-                <div class="icon"><span class="mai-mail"></span></div>
-                <div class="content"><a href="mailto:geosamscustomercare@gmail.com">geosamscustomercare@gmail.com</a></div>
-              </li>
-              <li>
-                <div class="icon"><span class="mai-phone-portrait"></span></div>
-                <div class="content"><a href="tel:+233549914001">+233 59 665 6181</a></div>
-              </li>
-            </ul>
-          </div>
-          <div class="col-lg-6 py-3 wow fadeInUp">
-            <div class="subhead">Contact Us</div>
-            <h2 class="title-section">Drop Us a Line</h2>
-            <div class="divider"></div>
-            
-            <form action="#">
-              <div class="py-2">
-                <input type="text" class="form-control" placeholder="Full name">
-              </div>
-              <div class="py-2">
-                <input type="text" class="form-control" placeholder="Email">
-              </div>
-              <div class="py-2">
-                <textarea rows="6" class="form-control" placeholder="Enter message"></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary rounded-pill mt-4">Send Message</button>
-            </form>
-          </div>
-        </div>
-      </div> <!-- .container -->
-    </div> <!-- .page-section -->
-  
-  </main>
-
-  {% include 'inc/footer.html' %}
-
-  {% endblock%}
-
+{% include 'inc/footer.html' %}
+{% endblock %}
 
 {% block scripts %}
 <script>
+  document.getElementById('close-crawler').addEventListener('click', function() {
+    document.querySelector('.announcement-crawler').style.display = 'none';
+  });
+
   function register_wallet(){
     Swal.fire({
-  text: "Do you want to register to become an agent?",
-  showCancelButton: true,
-  confirmButtonText: "Yes",
+      text: "Do you want to register to become an agent?",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
       icon: "info"
-}).then((result) => {
-  /* Read more about isConfirmed, isDenied below */
-  if (result.isConfirmed) {
-    $.ajax({
-        url: '/agent_registration_wallet',
-        type: 'GET',
-        success: function(response) {
-            console.log(response.status);
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $.ajax({
+          url: '/agent_registration_wallet',
+          type: 'GET',
+          success: function(response) {
             Swal.fire({text: response.status, icon: response.icon, confirmButtonText: "Okay"}).then((result) => {
-              location.reload()
-          });
-        },
-        error: function(error) {
-          Swal.fire({text: "Registration Unsuccessful", icon: "error"});
-            console.error('Something went wrong', error);
-            location.reload()
-        }
+              location.reload();
+            });
+          },
+          error: function(error) {
+            Swal.fire({text: "Registration Unsuccessful", icon: "error"});
+            location.reload();
+          }
+        });
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "info");
+      }
     });
-  } else if (result.isDenied) {
-    Swal.fire("Changes are not saved", "", "info");
-  }
-});
   }
 </script>
-{% endblock scripts %}
+{% endblock %}

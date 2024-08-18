@@ -15,7 +15,8 @@ urlpatterns = [
                   path('history/airtel-tigo', views.history, name='history'),
                   path('history/wallet', views.wallet_history, name='wallet_history'),
                   path('history/api_wallet', views.api_wallet_history, name='api_wallet_history'),
-                  path('history/telecel_api_wallet', views.telecel_api_wallet_history, name='telecel_api_wallet_history'),
+                  path('history/telecel_api_wallet', views.telecel_api_wallet_history,
+                       name='telecel_api_wallet_history'),
                   path('services/big_time/', views.big_time, name='big_time'),
                   path('services/afa/', views.afa_registration, name='afa'),
                   path('history/mtn', views.mtn_history, name="mtn-history"),
@@ -68,6 +69,7 @@ urlpatterns = [
                   path('terms_and_conditions', views.t_and_c, name='t_and_c'),
 
                   path('paystack_webhook', views.paystack_webhook, name='paystack_webhook'),
+                  path('cancel_mtn_transaction/<int:pk>', views.cancel_mtn_transaction, name='cancel_mtn_transaction'),
 
                   ##################################################################################################################
                   path('shop/', shopViews.shop_home_collections, name='shop'),
