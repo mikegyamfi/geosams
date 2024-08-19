@@ -2181,13 +2181,27 @@ def paystack_webhook(request):
 
 def cancel_mtn_transaction(request, pk):
     user = models.CustomUser.objects.get(id=request.user.id)
-    transaction_to_be_canceled = models.MTNTransaction.objects.filter(id=pk, user=user, transaction_status="Pending").first()
+    try:
+        transaction_to_be_canceled = models.MTNTransaction.objects.filter(id=pk, user=user, transaction_status="Pending").first()
+    except Exception as e:
+        print(e)
+        messages.info(request, "Could not cancel transaction")
+        return redirect('mtn-history')
 
     try:
         amount_to_refund = transaction_to_be_canceled.amount
         transaction_to_be_canceled.delete()
         user.wallet += float(amount_to_refund)
         user.save()
+
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=user,
+            transaction_type="Credit",
+            transaction_amount=float(amount_to_refund),
+            transaction_use="Refund(MTN)",
+            new_balance=user.wallet
+        )
+        new_wallet_transaction.save()
 
     except Exception as e:
         print(e)
@@ -2197,6 +2211,5 @@ def cancel_mtn_transaction(request, pk):
     messages.success(request, "Transaction has been cancelled and money refunded into wallet")
 
     return redirect('mtn-history')
-
 
 
