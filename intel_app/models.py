@@ -110,7 +110,8 @@ class MTNTransaction(models.Model):
         ("Pending", "Pending"),
         ("Processing", "Processing"),
         ("Completed", "Completed"),
-        ("Failed", "Failed")
+        ("Failed", "Failed"),
+        ("Canceled", "Canceled")
     )
     transaction_status = models.CharField(max_length=100, choices=choices, default="Pending")
     description = models.CharField(max_length=500, null=True, blank=True)
@@ -356,7 +357,8 @@ class ApiWalletTransaction(models.Model):
         ("MTN", "MTN"),
         ("Telecel", "Telecel"),
     )
-    transaction_channel = models.CharField(max_length=250, null=True, blank=True, choices=channel_choices, default="MTN")
+    transaction_channel = models.CharField(max_length=250, null=True, blank=True, choices=channel_choices,
+                                           default="MTN")
     transaction_date = models.DateTimeField(auto_now_add=True)
     transaction_amount = models.FloatField(null=False)
     new_balance = models.FloatField(null=True)
@@ -368,6 +370,24 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.message
+
+
+class ProfitInstance(models.Model):
+    selling_price_total = models.FloatField(null=False, blank=False)
+    purchase_price_total = models.FloatField(null=True, blank=True)
+    profit = models.FloatField(null=True, blank=True)
+    date_and_time = models.DateTimeField(auto_now_add=True)
+    choices = (
+        ("MTN", "MTN"),
+        ("AT", "AT"),
+        ("BigTime", "BigTime"),
+        ("Telecel", "Telecel"),
+        ("MTN API", "MTN API"),
+        ("Telecel API", "Telecel API"),
+        ("Wallet Topup", "Wallet Topup"),
+        ("Refunds", "Refunds")
+    )
+    channel = models.CharField(max_length=250, null=False, blank=False)
 
 
 ####################################################################################

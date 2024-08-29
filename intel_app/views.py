@@ -1,3 +1,4 @@
+import calendar
 import hashlib
 import hmac
 from datetime import datetime
@@ -5,10 +6,12 @@ from datetime import datetime
 import pandas as pd
 from decouple import config
 from django.contrib.auth.forms import PasswordResetForm
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 import requests
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -165,6 +168,13 @@ def pay_with_wallet(request):
                 user.wallet -= float(amount)
                 user.wallet = float(user.wallet)
                 user.save()
+
+                new_profit_instance = models.ProfitInstance.objects.create(
+                    selling_price_total=amount,
+                    channel="AT",  # Set your channel here based on user status
+                )
+                new_profit_instance.save()
+
                 new_wallet_transaction = models.WalletTransaction.objects.create(
                     user=request.user,
                     transaction_type="Debit",
@@ -444,6 +454,13 @@ def mtn_pay_with_wallet(request):
         user.wallet -= float(amount)
         user.wallet = float(user.wallet)
         user.save()
+
+        new_profit_instance = models.ProfitInstance.objects.create(
+            selling_price_total=amount,
+            channel="MTN",  # Set your channel here based on user status
+        )
+        new_profit_instance.save()
+
         new_wallet_transaction = models.WalletTransaction.objects.create(
             user=request.user,
             transaction_type="Debit",
@@ -496,8 +513,24 @@ def voda_pay_with_wallet(request):
             reference=reference,
         )
         new_mtn_transaction.save()
+
         user.wallet -= float(amount)
         user.save()
+
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=request.user,
+            transaction_type="Debit",
+            transaction_amount=float(amount),
+            transaction_use="Telecel",
+            new_balance=user.wallet
+        )
+        new_wallet_transaction.save()
+
+        new_profit_instance = models.ProfitInstance.objects.create(
+            selling_price_total=amount,
+            channel="Telecel",  # Set your channel here based on user status
+        )
+        new_profit_instance.save()
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
     return redirect('voda')
 
@@ -546,6 +579,13 @@ def big_time_pay_with_wallet(request):
             new_balance=user.wallet
         )
         new_wallet_transaction.save()
+
+        new_profit_instance = models.ProfitInstance.objects.create(
+            selling_price_total=amount,
+            channel="BigTime",  # Set your channel here based on user status
+        )
+        new_profit_instance.save()
+
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
     return redirect('big_time')
 
@@ -780,6 +820,12 @@ def afa_registration_wallet(request):
             new_balance=user.wallet
         )
         new_wallet_transaction.save()
+
+        # new_profit_instance = models.ProfitInstance.objects.create(
+        #     selling_price_total=amount,
+        #     channel="MTN",  # Set your channel here based on user status
+        # )
+        # new_profit_instance.save()
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
     return redirect('home')
 
@@ -1413,6 +1459,11 @@ def topup_info(request):
             }
             # response = requests.request('POST', url=sms_url, params=sms_body, headers=sms_headers)
             # print(response.text)
+            new_profit_instance = models.ProfitInstance.objects.create(
+                selling_price_total=amount,
+                channel="Wallet Topup",  # Set your channel here based on user status
+            )
+            new_profit_instance.save()
             messages.success(request,
                              f"Your Request has been sent successfully. Make payment now")
             return redirect("request_successful", reference)
@@ -2149,6 +2200,12 @@ def paystack_webhook(request):
                     )
                     new_topup.save()
 
+                    new_profit_instance = models.ProfitInstance.objects.create(
+                        selling_price_total=topup_amount,
+                        channel="Wallet Topup",  # Set your channel here based on user status
+                    )
+                    new_profit_instance.save()
+
                     sms_headers = {
                         'Authorization': 'Bearer 1317|sCtbw8U97Nwg10hVbZLBPXiJ8AUby7dyozZMjJpU',
                         'Content-Type': 'application/json'
@@ -2182,7 +2239,8 @@ def paystack_webhook(request):
 def cancel_mtn_transaction(request, pk):
     user = models.CustomUser.objects.get(id=request.user.id)
     try:
-        transaction_to_be_canceled = models.MTNTransaction.objects.filter(id=pk, user=user, transaction_status="Pending").first()
+        transaction_to_be_canceled = models.MTNTransaction.objects.filter(id=pk, user=user,
+                                                                          transaction_status="Pending").first()
     except Exception as e:
         print(e)
         messages.info(request, "Could not cancel transaction")
@@ -2190,9 +2248,15 @@ def cancel_mtn_transaction(request, pk):
 
     try:
         amount_to_refund = transaction_to_be_canceled.amount
-        transaction_to_be_canceled.delete()
-        user.wallet += float(amount_to_refund)
-        user.save()
+        transaction_to_be_canceled.transaction_status = "Canceled"
+        transaction_to_be_canceled.save()
+        try:
+            user.wallet += float(amount_to_refund)
+            user.save()
+        except Exception as e:
+            print(e)
+            user.wallet += int(amount_to_refund)
+            user.save()
 
         new_wallet_transaction = models.WalletTransaction.objects.create(
             user=user,
@@ -2202,6 +2266,12 @@ def cancel_mtn_transaction(request, pk):
             new_balance=user.wallet
         )
         new_wallet_transaction.save()
+
+        new_profit_instance = models.ProfitInstance.objects.create(
+            selling_price_total=amount_to_refund,
+            channel="Refunds",  # Set your channel here based on user status
+        )
+        new_profit_instance.save()
 
     except Exception as e:
         print(e)
@@ -2213,3 +2283,98 @@ def cancel_mtn_transaction(request, pk):
     return redirect('mtn-history')
 
 
+def admin_cancel_mtn_transaction(request, pk):
+    if request.user.is_superuser and request.user.is_staff:
+        transaction_to_be_canceled = models.MTNTransaction.objects.get(id=pk)
+        user = transaction_to_be_canceled.user
+        print(user)
+        print(user.wallet)
+        try:
+            amount_to_refund = transaction_to_be_canceled.amount
+            transaction_to_be_canceled.transaction_status = "Canceled"
+            transaction_to_be_canceled.save()
+            try:
+                user.wallet += float(amount_to_refund)
+                user.save()
+            except Exception as e:
+                print(e)
+                user.wallet += int(amount_to_refund)
+                user.save()
+
+            print(user.wallet)
+
+            new_wallet_transaction = models.WalletTransaction.objects.create(
+                user=user,
+                transaction_type="Credit",
+                transaction_amount=float(amount_to_refund),
+                transaction_use="Refund(MTN)",
+                new_balance=user.wallet
+            )
+            new_wallet_transaction.save()
+
+            new_profit_instance = models.ProfitInstance.objects.create(
+                selling_price_total=amount_to_refund,
+                channel="Refunds",  # Set your channel here based on user status
+            )
+            new_profit_instance.save()
+
+        except Exception as e:
+            print(e)
+            messages.info(request, "Unable to cancel transaction")
+            return redirect('mtn-history')
+
+        messages.success(request, "Transaction has been cancelled and money refunded into wallet")
+
+        return redirect('mtn_admin', status="Pending")
+    else:
+        return redirect('home')
+
+
+@login_required(login_url='login')
+def profit_home(request):
+    if request.user.is_superuser:
+        return render(request, 'layouts/profit_page.html')
+    else:
+        messages.error(request, "Access Denied")
+        return redirect('home')
+
+
+def channel_profit(request, channel):
+    profit_instances = models.ProfitInstance.objects.filter(channel=channel)
+
+    # Calculate profit breakdown by month
+    today = timezone.now()
+    this_year = today.year
+    monthly_data = []
+    total_profit = 0
+    total_selling_price = 0
+    total_purchase_price = 0
+
+    for month in range(1, 13):  # Loop through each month of the year
+        month_name = calendar.month_name[month]
+        month_instances = profit_instances.filter(date_and_time__year=this_year, date_and_time__month=month)
+        month_profit = month_instances.aggregate(total_profit=Sum('profit'))['total_profit'] or 0
+        month_selling_price = month_instances.aggregate(total_selling_price=Sum('selling_price_total'))[
+                                  'total_selling_price'] or 0
+        # month_purchase_price = month_instances.aggregate(total_purchase_price=Sum('purchase_price_total'))[
+        #                            'total_purchase_price'] or 0
+
+        monthly_data.append({
+            'month': month_name,
+            'profit': month_profit,
+            'selling_price': month_selling_price,
+        })
+
+        total_profit += month_profit
+        total_selling_price += month_selling_price
+        # total_purchase_price += month_purchase_price
+
+    context = {
+        'monthly_data': monthly_data,
+        'total_profit': total_profit,
+        'total_selling_price': total_selling_price,
+        'total_purchase_price': total_purchase_price,
+        'channel': channel,
+    }
+
+    return render(request, 'layouts/services/profit.html', context)

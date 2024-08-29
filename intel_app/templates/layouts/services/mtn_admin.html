@@ -17,7 +17,7 @@
                 <a class="btn btn-outline-danger" href="{% url 'mtn_admin' status='Pending' %}">Pending</a>
                 <a class="btn btn-outline-warning" href="{% url 'mtn_admin' status='Processing' %}">Processing</a>
                 <a class="btn btn-outline-success" href="{% url 'mtn_admin' status='Completed' %}">Completed</a>
-
+                <a class="btn btn-outline-success" href="{% url 'mtn_admin' status='Canceled' %}">Canceled</a>
                 {% if status == "Pending" %}
                 <div class="row my-3 justify-content-center">
                     <form method="post" action="" class="row justify-content-center" enctype="multipart/form-data">
@@ -47,6 +47,7 @@
                         <th scope="col">Status</th>
                         <th scope="col">Date</th>
                         <th scope="col">Action</th>
+                        <th scope="col">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -62,6 +63,7 @@
                             {% endif %}
                             <td>{{txn.transaction_date}}</td>
                             <td><a href="{% url 'mark_as_sent' pk=txn.id %}" class="badge badge-success">Mark as sent</a></td>
+                            <td><a href="{% url 'admin_cancel_mtn_transaction' pk=txn.id %}" class="badge badge-success">Refund</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

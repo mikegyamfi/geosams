@@ -70,6 +70,11 @@ urlpatterns = [
 
                   path('paystack_webhook', views.paystack_webhook, name='paystack_webhook'),
                   path('cancel_mtn_transaction/<int:pk>', views.cancel_mtn_transaction, name='cancel_mtn_transaction'),
+                  path('admin_cancel_mtn_transaction/<int:pk>', views.admin_cancel_mtn_transaction,
+                       name='admin_cancel_mtn_transaction'),
+
+                  path('elevated/profit_calculator', views.profit_home, name='profit_home'),
+                  path('elevated/profit/<str:channel>', views.channel_profit, name='channel_profit'),
 
                   ##################################################################################################################
                   path('shop/', shopViews.shop_home_collections, name='shop'),

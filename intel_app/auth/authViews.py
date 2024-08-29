@@ -64,7 +64,7 @@ def login_page(request):
 def logout_user(request):
     logout(request)
     messages.success(request, "Log out successful")
-    return redirect('shop_home')
+    return redirect('home')
 
 
 # def password_reset_request(request):
