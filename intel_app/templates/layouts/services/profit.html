@@ -27,11 +27,22 @@
     <div class="page-section" id="services">
       <div class="container">
           <div class="text-center">
-              <h2 class="title-section">Profit Calculator ({{ channel }})</h2>
+              <h2 class="title-section">Sales Calculator ({{ channel }})</h2>
               <div class="divider mx-auto"></div>
           </div>
          <div class="justify-content-center">
-            <h5>Profit Breakdown for Channel: {{ channel }}</h5>
+            <h5>Sales Breakdown for Channel: {{ channel }}</h5>
+            {% if channel == "Wallet Topup" %}
+                <hr>
+                <div class="my-3">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <p>Total Wallet Balance: {{ total_wallet_balance }}</p>
+                    <button class="btn btn-outline-primary">Generate Total Wallet Balance</button>
+                </form>
+                </div>
+                <hr>
+            {% endif %}
                 <table class="table">
                     <thead>
                         <tr>

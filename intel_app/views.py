@@ -2340,6 +2340,62 @@ def profit_home(request):
 
 
 def channel_profit(request, channel):
+    if request.method == "POST":
+        if channel == "Wallet Topup":
+
+            # Sum the wallet values of all users
+            total_wallet = CustomUser.objects.aggregate(total=Sum('wallet'))['total']
+
+            # If you want to handle the case where there are no users and the result is None:
+            total_wallet = round(total_wallet, 2) or 0.0
+
+            print(f"Total wallet value of all users: {total_wallet}")
+
+            new_generated_instance = models.GeneratedWalletTotal.objects.create(amount=total_wallet)
+            new_generated_instance.save()
+
+            messages.info(request, "Total wallet value of all users: GHS " + str(total_wallet))
+            profit_instances = models.ProfitInstance.objects.filter(channel=channel)
+
+            # Calculate profit breakdown by month
+            today = timezone.now()
+            this_year = today.year
+            monthly_data = []
+            total_profit = 0
+            total_selling_price = 0
+            total_purchase_price = 0
+
+            for month in range(1, 13):  # Loop through each month of the year
+                month_name = calendar.month_name[month]
+                month_instances = profit_instances.filter(date_and_time__year=this_year, date_and_time__month=month)
+                month_profit = month_instances.aggregate(total_profit=Sum('profit'))['total_profit'] or 0
+                month_selling_price = month_instances.aggregate(total_selling_price=Sum('selling_price_total'))[
+                                          'total_selling_price'] or 0
+                # month_purchase_price = month_instances.aggregate(total_purchase_price=Sum('purchase_price_total'))[
+                #                            'total_purchase_price'] or 0
+
+                monthly_data.append({
+                    'month': month_name,
+                    'profit': month_profit,
+                    'selling_price': month_selling_price,
+                })
+
+                total_profit += month_profit
+                total_selling_price += month_selling_price
+                # total_purchase_price += month_purchase_price
+
+            context = {
+                'monthly_data': monthly_data,
+                'total_profit': total_profit,
+                'total_selling_price': total_selling_price,
+                'total_purchase_price': total_purchase_price,
+                'channel': channel,
+                'total_wallet_balance': total_wallet
+            }
+
+            return render(request, 'layouts/services/profit.html', context)
+        else:
+            return redirect('home')
     profit_instances = models.ProfitInstance.objects.filter(channel=channel)
 
     # Calculate profit breakdown by month

@@ -390,6 +390,14 @@ class ProfitInstance(models.Model):
     channel = models.CharField(max_length=250, null=False, blank=False)
 
 
+class GeneratedWalletTotal(models.Model):
+    amount = models.FloatField(null=False, blank=False)
+    date_generated = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.amount} - {self.date_generated}"
+
+
 ####################################################################################
 
 def get_file_path(filename):
