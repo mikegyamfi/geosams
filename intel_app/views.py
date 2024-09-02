@@ -1,6 +1,7 @@
 import calendar
 import hashlib
 import hmac
+import math
 from datetime import datetime
 
 import pandas as pd
@@ -2347,7 +2348,8 @@ def channel_profit(request, channel):
             all_users = models.CustomUser.objects.all()
             total_wallet = 0
             for user in all_users:
-                if not user.wallet or user.wallet is None:
+                print(user.wallet)
+                if not user.wallet or user.wallet is None or math.isnan(user.wallet):
                     continue
                 total_wallet += user.wallet
             # total_wallet = CustomUser.objects.aggregate(
