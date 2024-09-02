@@ -7,6 +7,7 @@ import pandas as pd
 from decouple import config
 from django.contrib.auth.forms import PasswordResetForm
 from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
 import requests
@@ -2342,12 +2343,15 @@ def profit_home(request):
 def channel_profit(request, channel):
     if request.method == "POST":
         if channel == "Wallet Topup":
-            # Sum the wallet values of all users
-            total_wallet = CustomUser.objects.aggregate(total=Sum('wallet'))['total']
+            # Sum the wallet values of all users, treating None as 0.0
+            total_wallet = CustomUser.objects.aggregate(
+                total=Coalesce(Sum(Coalesce('wallet', 0.0)), 0.0)
+            )['total']
+
             print(total_wallet)
 
-            # If you want to handle the case where there are no users and the result is None:
-            total_wallet = round(total_wallet, 2) or 0.0
+            # Round the total wallet value to 2 decimal places
+            total_wallet = round(total_wallet, 2)
 
             print(f"Total wallet value of all users: {total_wallet}")
 
@@ -2371,8 +2375,6 @@ def channel_profit(request, channel):
                 month_profit = month_instances.aggregate(total_profit=Sum('profit'))['total_profit'] or 0
                 month_selling_price = month_instances.aggregate(total_selling_price=Sum('selling_price_total'))[
                                           'total_selling_price'] or 0
-                # month_purchase_price = month_instances.aggregate(total_purchase_price=Sum('purchase_price_total'))[
-                #                            'total_purchase_price'] or 0
 
                 monthly_data.append({
                     'month': month_name,
@@ -2382,7 +2384,6 @@ def channel_profit(request, channel):
 
                 total_profit += month_profit
                 total_selling_price += month_selling_price
-                # total_purchase_price += month_purchase_price
 
             context = {
                 'monthly_data': monthly_data,
@@ -2412,8 +2413,6 @@ def channel_profit(request, channel):
         month_profit = month_instances.aggregate(total_profit=Sum('profit'))['total_profit'] or 0
         month_selling_price = month_instances.aggregate(total_selling_price=Sum('selling_price_total'))[
                                   'total_selling_price'] or 0
-        # month_purchase_price = month_instances.aggregate(total_purchase_price=Sum('purchase_price_total'))[
-        #                            'total_purchase_price'] or 0
 
         monthly_data.append({
             'month': month_name,
@@ -2423,7 +2422,6 @@ def channel_profit(request, channel):
 
         total_profit += month_profit
         total_selling_price += month_selling_price
-        # total_purchase_price += month_purchase_price
 
     context = {
         'monthly_data': monthly_data,
