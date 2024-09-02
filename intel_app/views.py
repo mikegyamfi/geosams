@@ -2344,9 +2344,15 @@ def channel_profit(request, channel):
     if request.method == "POST":
         if channel == "Wallet Topup":
             # Sum the wallet values of all users, treating None as 0.0
-            total_wallet = CustomUser.objects.aggregate(
-                total=Coalesce(Sum(Coalesce('wallet', 0.0)), 0.0)
-            )['total']
+            all_users = models.CustomUser.objects.all()
+            total_wallet = 0
+            for user in all_users:
+                if not user.wallet or user.wallet is None:
+                    continue
+                total_wallet += user.wallet
+            # total_wallet = CustomUser.objects.aggregate(
+            #     total=Coalesce(Sum(Coalesce('wallet', 0.0)), 0.0)
+            # )['total']
 
             print(total_wallet)
 
