@@ -2342,9 +2342,9 @@ def profit_home(request):
 def channel_profit(request, channel):
     if request.method == "POST":
         if channel == "Wallet Topup":
-
             # Sum the wallet values of all users
             total_wallet = CustomUser.objects.aggregate(total=Sum('wallet'))['total']
+            print(total_wallet)
 
             # If you want to handle the case where there are no users and the result is None:
             total_wallet = round(total_wallet, 2) or 0.0
