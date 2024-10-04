@@ -47,6 +47,7 @@
                         <th scope="col">Status</th>
                         <th scope="col">Date</th>
                         <th scope="col">Action</th>
+                        <th scope="col">Action</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -62,6 +63,7 @@
                             {% endif %}
                             <td>{{txn.transaction_date}}</td>
                             <td><a href="{% url 'voda_mark_as_sent' pk=txn.id %}" class="badge badge-success">Mark as sent</a></td>
+                        <td><a href="{% url 'admin_cancel_telecel_transaction' pk=txn.id %}" class="badge badge-success">Refund</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

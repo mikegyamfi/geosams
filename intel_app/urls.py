@@ -73,6 +73,12 @@ urlpatterns = [
                   path('admin_cancel_mtn_transaction/<int:pk>', views.admin_cancel_mtn_transaction,
                        name='admin_cancel_mtn_transaction'),
 
+                  path('cancel_telecel_transaction/<int:pk>', views.cancel_voda_transaction,
+                       name='cancel_telecel_transaction'),
+                  path('admin_cancel_telecel_transaction/<int:pk>', views.admin_cancel_voda_transaction,
+                       name='admin_cancel_telecel_transaction'),
+                  path('check_phone_number/', views.check_phone_number, name='check_phone_number'),
+
                   path('elevated/profit_calculator', views.profit_home, name='profit_home'),
                   path('elevated/profit/<str:channel>', views.channel_profit, name='channel_profit'),
 

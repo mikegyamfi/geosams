@@ -119,6 +119,11 @@ class MTNTransaction(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.bundle_number} - {self.reference}"
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['bundle_number', 'transaction_status']),
+        ]
+
 
 class BigTimeBundlePrice(models.Model):
     price = models.FloatField(null=False, blank=False)
@@ -252,6 +257,7 @@ class VodafoneTransaction(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     bundle_number = models.BigIntegerField(null=False, blank=False)
     offer = models.CharField(max_length=250, null=False, blank=False)
+    amount = models.FloatField(null=True, blank=True)
     reference = models.CharField(max_length=20, null=False, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     choices = (

@@ -513,6 +513,7 @@ def voda_pay_with_wallet(request):
             bundle_number=phone_number,
             offer=f"{bundle}MB",
             reference=reference,
+            amount=amount
         )
         new_mtn_transaction.save()
 
@@ -697,6 +698,7 @@ def voda(request):
             bundle_number=phone_number,
             offer=f"{bundle}MB",
             reference=payment_reference,
+            amount=amount_paid
         )
         new_mtn_transaction.save()
         return JsonResponse({'status': "Your transaction will be completed shortly", 'icon': 'success'})
@@ -2332,6 +2334,100 @@ def admin_cancel_mtn_transaction(request, pk):
         return redirect('home')
 
 
+def cancel_voda_transaction(request, pk):
+    user = models.CustomUser.objects.get(id=request.user.id)
+    try:
+        transaction_to_be_canceled = models.VodafoneTransaction.objects.filter(id=pk, user=user,
+                                                                               transaction_status="Pending").first()
+    except Exception as e:
+        print(e)
+        messages.info(request, "Could not cancel transaction")
+        return redirect('voda-history')
+
+    try:
+        amount_to_refund = transaction_to_be_canceled.amount
+        transaction_to_be_canceled.transaction_status = "Canceled"
+        transaction_to_be_canceled.save()
+        try:
+            user.wallet += float(amount_to_refund)
+            user.save()
+        except Exception as e:
+            print(e)
+            user.wallet += int(amount_to_refund)
+            user.save()
+
+        new_wallet_transaction = models.WalletTransaction.objects.create(
+            user=user,
+            transaction_type="Credit",
+            transaction_amount=float(amount_to_refund),
+            transaction_use="Refund(Telecel)",
+            new_balance=user.wallet
+        )
+        new_wallet_transaction.save()
+
+        new_profit_instance = models.ProfitInstance.objects.create(
+            selling_price_total=amount_to_refund,
+            channel="Refunds",  # Set your channel here based on user status
+        )
+        new_profit_instance.save()
+
+    except Exception as e:
+        print(e)
+        messages.info(request, "Unable to cancel transaction")
+        return redirect('voda-history')
+
+    messages.success(request, "Transaction has been cancelled and money refunded into wallet")
+
+    return redirect('voda-history')
+
+
+def admin_cancel_voda_transaction(request, pk):
+    if request.user.is_superuser and request.user.is_staff:
+        transaction_to_be_canceled = models.VodafoneTransaction.objects.get(id=pk)
+        user = transaction_to_be_canceled.user
+        print(user)
+        print(user.wallet)
+        try:
+            amount_to_refund = transaction_to_be_canceled.amount
+            transaction_to_be_canceled.transaction_status = "Canceled"
+            transaction_to_be_canceled.save()
+            try:
+                user.wallet += float(amount_to_refund)
+                user.save()
+            except Exception as e:
+                print(e)
+                user.wallet += int(amount_to_refund)
+                user.save()
+
+            print(user.wallet)
+
+            new_wallet_transaction = models.WalletTransaction.objects.create(
+                user=user,
+                transaction_type="Credit",
+                transaction_amount=float(amount_to_refund),
+                transaction_use="Refund(Telecel)",
+                new_balance=user.wallet
+            )
+            new_wallet_transaction.save()
+
+            new_profit_instance = models.ProfitInstance.objects.create(
+                selling_price_total=amount_to_refund,
+                channel="Refunds",  # Set your channel here based on user status
+            )
+            new_profit_instance.save()
+
+        except Exception as e:
+            print(e)
+            messages.info(request, "Unable to cancel transaction")
+            return redirect('voda-history')
+
+        messages.success(request, "Transaction has been cancelled and money refunded into wallet")
+
+        return redirect('voda_admin', status="Pending")
+    else:
+        return redirect('home')
+
+
 @login_required(login_url='login')
 def profit_home(request):
     if request.user.is_superuser:
@@ -2440,3 +2536,19 @@ def channel_profit(request, channel):
     }
 
     return render(request, 'layouts/services/profit.html', context)
+
+
+def check_phone_number(request):
+    if request.method == 'POST':
+        phone = request.POST.get('phone')
+        if not phone or not phone.isdigit() or len(phone) != 10:
+            return JsonResponse({'error': 'Invalid phone number'}, status=400)
+        phone_int = int(phone)
+        exists = models.MTNTransaction.objects.filter(
+            bundle_number=phone_int, transaction_status="Completed"
+        ).exists()
+        return JsonResponse({'exists': exists})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
+

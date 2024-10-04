@@ -38,7 +38,8 @@
               <div class="form-group col-md-6">
                 <label for="phone">Phone Number</label>
                 {{form.phone_number}}
-                <small>Number must be 10 digits. E.g. 0270000000</small>
+                <small>Number must be 10 digits. E.g. 0270000000. Use the button to check if the transaction will go through</small>
+                  <button type="button" class="btn btn-info mt-2 check-number">Check Number</button>
               </div>
               <div class="form-group col-md-6">
                 <label for="inputPassword4">Bundle Offer</label>
@@ -184,6 +185,35 @@ $("body").on('click', '.pay-with-wallet', function(e) {
 
 </script>  
 
+<script>
+  $("body").on('click', '.check-number', function(e) {
+    e.preventDefault();
+    let phonenumber = $(".mtn-phone").val();
+    if (!phonenumber || phonenumber.length !== 10) {
+      Swal.fire({ text: "Phone number must be 10 digits" });
+      return;
+    }
+    let token = $("input[name=csrfmiddlewaretoken]").val();
+    $.ajax({
+      method: "POST",
+      url: "/check_phone_number/",
+      data: {
+        phone: phonenumber,
+        csrfmiddlewaretoken: token,
+      },
+      success: function(response) {
+        if (response.exists) {
+          Swal.fire({ text: "This number exists in our records.", icon: "success" });
+        } else {
+          Swal.fire({ text: "This is a new number, transactions may not go through and be canceled.", icon: "warning" });
+        }
+      },
+      error: function(xhr, status, error) {
+        Swal.fire({ text: "An error occurred.", icon: "error" });
+      }
+    });
+  });
+</script>
 
 
 {% endblock scripts %}
