@@ -194,6 +194,16 @@ $("body").on('click', '.pay-with-wallet', function(e) {
       return;
     }
     let token = $("input[name=csrfmiddlewaretoken]").val();
+
+    // Show the loading indicator
+    Swal.fire({
+      title: 'Checking...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading()
+      }
+    });
+
     $.ajax({
       method: "POST",
       url: "/check_phone_number/",
@@ -202,6 +212,7 @@ $("body").on('click', '.pay-with-wallet', function(e) {
         csrfmiddlewaretoken: token,
       },
       success: function(response) {
+        Swal.close(); // Close the loading indicator
         if (response.exists) {
           Swal.fire({ text: "This number exists in our records.", icon: "success" });
         } else {
@@ -209,11 +220,13 @@ $("body").on('click', '.pay-with-wallet', function(e) {
         }
       },
       error: function(xhr, status, error) {
+        Swal.close(); // Close the loading indicator
         Swal.fire({ text: "An error occurred.", icon: "error" });
       }
     });
   });
 </script>
+
 
 
 {% endblock scripts %}
