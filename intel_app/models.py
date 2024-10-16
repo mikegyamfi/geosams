@@ -4,7 +4,7 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from intel_app.custom_storages import MediaStorage
+# from intel_app.custom_storages import MediaStorage
 
 
 # Create your models here.
@@ -115,6 +115,7 @@ class MTNTransaction(models.Model):
     )
     transaction_status = models.CharField(max_length=100, choices=choices, default="Pending")
     description = models.CharField(max_length=500, null=True, blank=True)
+    refunded = models.BooleanField(default=False)  # New field to track refunds
 
     def __str__(self):
         return f"{self.user.username} - {self.bundle_number} - {self.reference}"
@@ -268,6 +269,7 @@ class VodafoneTransaction(models.Model):
     )
     transaction_status = models.CharField(max_length=100, choices=choices, default="Pending")
     description = models.CharField(max_length=500, null=True, blank=True)
+    refunded = models.BooleanField(default=False)  # New field to track refunds
 
     def __str__(self):
         return f"{self.user.username} - {self.bundle_number} - {self.reference}"
@@ -424,7 +426,7 @@ class Brand(models.Model):
 class Category(models.Model):
     slug = models.CharField(max_length=250, null=False, blank=False)
     name = models.CharField(max_length=250, null=False, blank=True)
-    image = models.ImageField(upload_to='category/', null=True, blank=True, storage=MediaStorage())
+    image = models.ImageField(upload_to='category/', null=True, blank=True)
     description = models.TextField(max_length=600, null=False, blank=False)
     status = models.BooleanField(default=False, help_text="0=default, 1=Hidden")
     trending = models.BooleanField(default=False, help_text="0=default, 1=Trending")
@@ -462,7 +464,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='product_images/', blank=True, null=True, storage=MediaStorage())
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     description = models.CharField(max_length=250, blank=True, null=True)
 
     def __str__(self):
