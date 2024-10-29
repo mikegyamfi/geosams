@@ -371,3 +371,4 @@ admin.site.register(models.SuperAgentIshareBundlePrice)
 admin.site.register(models.AFARegistration)
 admin.site.register(models.BigTimeTransaction)
 admin.site.register(models.TelecelAPIUsersHistory)  # Ensure this is only registered once
+admin.site.register(models.AdminInfo)
