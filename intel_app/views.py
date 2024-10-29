@@ -1529,7 +1529,7 @@ def credit_user_from_list(request, reference):
         )
         new_wallet_transaction.save()
         crediting.status = True
-        crediting.credited_at = datetime.now()
+        crediting.credited_at = datetime.datetime.now()
         crediting.save()
         sms_headers = {
             'Authorization': 'Bearer 1334|wroIm5YnQD6hlZzd8POtLDXxl4vQodCZNorATYGX',
