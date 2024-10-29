@@ -184,47 +184,47 @@ $("body").on('click', '.pay-with-wallet', function(e) {
 
 </script>  
 
-<script>
-  $("body").on('click', '.check-number', function(e) {
-    e.preventDefault();
-    let phonenumber = $(".mtn-phone").val();
-    if (!phonenumber || phonenumber.length !== 10) {
-      Swal.fire({ text: "Phone number must be 10 digits" });
-      return;
-    }
-    let token = $("input[name=csrfmiddlewaretoken]").val();
-
-    // Show the loading indicator
-    Swal.fire({
-      title: 'Checking...',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading()
-      }
-    });
-
-    $.ajax({
-      method: "POST",
-      url: "/check_phone_number/",
-      data: {
-        phone: phonenumber,
-        csrfmiddlewaretoken: token,
-      },
-      success: function(response) {
-        Swal.close(); // Close the loading indicator
-        if (response.exists) {
-          Swal.fire({ text: "This number exists in our records.", icon: "success" });
-        } else {
-          Swal.fire({ text: "This is a new number, transactions may not go through and be canceled.", icon: "warning" });
-        }
-      },
-      error: function(xhr, status, error) {
-        Swal.close(); // Close the loading indicator
-        Swal.fire({ text: "An error occurred.", icon: "error" });
-      }
-    });
-  });
-</script>
+{#<script>#}
+{#  $("body").on('click', '.check-number', function(e) {#}
+{#    e.preventDefault();#}
+{#    let phonenumber = $(".mtn-phone").val();#}
+{#    if (!phonenumber || phonenumber.length !== 10) {#}
+{#      Swal.fire({ text: "Phone number must be 10 digits" });#}
+{#      return;#}
+{#    }#}
+{#    let token = $("input[name=csrfmiddlewaretoken]").val();#}
+{##}
+{#    // Show the loading indicator#}
+{#    Swal.fire({#}
+{#      title: 'Checking...',#}
+{#      allowOutsideClick: false,#}
+{#      didOpen: () => {#}
+{#        Swal.showLoading()#}
+{#      }#}
+{#    });#}
+{##}
+{#    $.ajax({#}
+{#      method: "POST",#}
+{#      url: "/check_phone_number/",#}
+{#      data: {#}
+{#        phone: phonenumber,#}
+{#        csrfmiddlewaretoken: token,#}
+{#      },#}
+{#      success: function(response) {#}
+{#        Swal.close(); // Close the loading indicator#}
+{#        if (response.exists) {#}
+{#          Swal.fire({ text: "This number exists in our records.", icon: "success" });#}
+{#        } else {#}
+{#          Swal.fire({ text: "This is a new number, transactions may not go through and be canceled.", icon: "warning" });#}
+{#        }#}
+{#      },#}
+{#      error: function(xhr, status, error) {#}
+{#        Swal.close(); // Close the loading indicator#}
+{#        Swal.fire({ text: "An error occurred.", icon: "error" });#}
+{#      }#}
+{#    });#}
+{#  });#}
+{#</script>#}
 
 
 
