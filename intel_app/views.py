@@ -146,7 +146,7 @@ def pay_with_wallet(request):
             bundle = models.IshareBundlePrice.objects.get(price=float(amount)).bundle_volume
 
         print(bundle)
-        send_bundle_response = helper.send_bundle(request.user, phone_number, bundle, reference)
+        status_code, send_bundle_response = helper.send_bundle(request.user, phone_number, bundle, reference)
         print(send_bundle_response)
 
         sms_headers = {
@@ -157,8 +157,9 @@ def pay_with_wallet(request):
         sms_url = 'https://webapp.usmsgh.com/api/sms/send'
         if send_bundle_response != "bad response":
             print("good response")
-            if send_bundle_response["data"]["request_status_code"] == "200" or send_bundle_response[
-                "request_message"] == "Successful":
+            if (
+                    status_code == 200 and send_bundle_response['data']['request_status_code'] == '200'
+            ):
                 new_transaction = models.IShareBundleTransaction.objects.create(
                     user=request.user,
                     bundle_number=phone_number,
